@@ -15,17 +15,20 @@ namespace SteamKit2
     /// </summary>
     public abstract class ClientMsgHandler
     {
-        public string Name { get; private set; }
+
+        public string Name
+        {
+            get { return this.GetType().GetAttribute<HandlerAttribute>().Name; }
+        }
+
         protected SteamClient Client { get; private set; }
 
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientMsgHandler"/> class.
         /// </summary>
-        /// <param name="name">The name.</param>
-        public ClientMsgHandler( string name )
+        public ClientMsgHandler()
         {
-            this.Name = name;
         }
 
 
