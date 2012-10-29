@@ -13,7 +13,7 @@ using Classless.Hasher;
 
 namespace SteamKit2
 {
-    class RSACrypto : IDisposable
+    public class RSACrypto : IDisposable
     {
         RSACryptoServiceProvider rsa;
 
@@ -74,7 +74,7 @@ namespace SteamKit2
                 {
                     cs.Write( input, 0, input.Length );
                     cs.FlushFinalBlock();
-                    
+
                     return ms.ToArray();
                 }
             }
