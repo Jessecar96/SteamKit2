@@ -190,9 +190,6 @@ namespace SteamKit2.GC.Internal
       [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCAdjustItemEquippedState", Value=1059)]
       k_EMsgGCAdjustItemEquippedState = 1059,
             
-      [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCRequestItemSchemaData", Value=1060)]
-      k_EMsgGCRequestItemSchemaData = 1060,
-            
       [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCCollectItem", Value=1061)]
       k_EMsgGCCollectItem = 1061,
             
@@ -243,6 +240,12 @@ namespace SteamKit2.GC.Internal
             
       [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCSetItemPositions", Value=1077)]
       k_EMsgGCSetItemPositions = 1077,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCApplyEggEssence", Value=1078)]
+      k_EMsgGCApplyEggEssence = 1078,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCNameEggEssenceResponse", Value=1079)]
+      k_EMsgGCNameEggEssenceResponse = 1079,
             
       [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCTradingBase", Value=1500)]
       k_EMsgGCTradingBase = 1500,
@@ -356,7 +359,16 @@ namespace SteamKit2.GC.Internal
       k_EMsgGCStorePurchaseInit = 2510,
             
       [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCStorePurchaseInitResponse", Value=2511)]
-      k_EMsgGCStorePurchaseInitResponse = 2511
+      k_EMsgGCStorePurchaseInitResponse = 2511,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCBannedWordListRequest", Value=2512)]
+      k_EMsgGCBannedWordListRequest = 2512,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCBannedWordListResponse", Value=2513)]
+      k_EMsgGCBannedWordListResponse = 2513,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCToGCBannedWordListBroadcast", Value=2514)]
+      k_EMsgGCToGCBannedWordListBroadcast = 2514
     }
   
     [global::ProtoBuf.ProtoContract(Name=@"EGCMsgResponse")]

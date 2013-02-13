@@ -6,10 +6,9 @@
 
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
-using Classless.Hasher;
+using System.Text;
 
 namespace SteamKit2
 {
@@ -35,7 +34,7 @@ namespace SteamKit2
 
         public void Dispose()
         {
-            ((IDisposable)rsa).Dispose();
+            ( ( IDisposable )rsa ).Dispose();
         }
     }
 
@@ -74,7 +73,7 @@ namespace SteamKit2
                 {
                     cs.Write( input, 0, input.Length );
                     cs.FlushFinalBlock();
-
+                    
                     return ms.ToArray();
                 }
             }
@@ -115,7 +114,7 @@ namespace SteamKit2
         /// </summary>
         public static byte[] SymmetricEncrypt( byte[] input, byte[] key )
         {
-            Debug.Assert( key.Length == 32 );
+            DebugLog.Assert( key.Length == 32, "CryptoHelper", "SymmetricEncrypt used with non 32 byte key!" );
 
             using ( var aes = new RijndaelManaged() )
             {
@@ -165,7 +164,7 @@ namespace SteamKit2
         /// </summary>
         public static byte[] SymmetricDecrypt( byte[] input, byte[] key )
         {
-            Debug.Assert( key.Length == 32 );
+            DebugLog.Assert( key.Length == 32, "CryptoHelper", "SymmetricDecrypt used with non 32 byte key!" );
 
             using ( var aes = new RijndaelManaged() )
             {
@@ -212,17 +211,29 @@ namespace SteamKit2
         }
 
         /// <summary>
-        /// Performs the Jenkins hash on an input byte array
+        /// Verifies and performs a symmetricdecrypt on the input using the given password as a key
         /// </summary>
-        public static byte[] JenkinsHash( byte[] input )
+        public static byte[] VerifyAndDecryptPassword( byte[] input, string password )
         {
-            using ( JenkinsHash jHash = new JenkinsHash() )
+            byte[] key, hash;
+            using(SHA256 sha256 = SHA256Managed.Create())
             {
-                byte[] hash = jHash.ComputeHash( input );
-                Array.Reverse( hash );
-
-                return hash;
+                byte[] password_bytes = Encoding.ASCII.GetBytes(password);
+                key = sha256.ComputeHash(password_bytes);
             }
+            using(HMACSHA1 hmac = new HMACSHA1(key))
+            {
+                hash = hmac.ComputeHash(input, 0, 32);
+            }
+
+            for (int i = 32; i < input.Length; i++)
+                if (input[i] != hash[i % 32])
+                    return null;
+
+            byte[] encrypted = new byte[32];
+            Array.Copy(input, 0, encrypted, 0, 32);
+
+            return CryptoHelper.SymmetricDecrypt(encrypted, key);
         }
 
         /// <summary>
@@ -230,7 +241,7 @@ namespace SteamKit2
         /// </summary>
         public static byte[] CRCHash( byte[] input )
         {
-            using ( Crc crc = new Crc( CrcParameters.GetParameters( CrcStandard.Crc32Bit ) ) )
+            using ( var crc = new Crc32() )
             {
                 byte[] hash = crc.ComputeHash( input );
                 Array.Reverse( hash );

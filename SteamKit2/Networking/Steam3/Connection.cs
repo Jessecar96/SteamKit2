@@ -6,8 +6,9 @@
 
 
 using System;
-using System.Diagnostics;
 using System.Net;
+using System.Security.Cryptography;
+using System.IO;
 
 namespace SteamKit2
 {
@@ -32,14 +33,24 @@ namespace SteamKit2
 
         public NetFilterEncryption( byte[] sessionKey )
         {
-            Debug.Assert( sessionKey.Length == 32 );
+            DebugLog.Assert( sessionKey.Length == 32, "NetFilterEncryption", "AES session key was not 32 bytes!" );
 
             this.sessionKey = sessionKey;
         }
 
         public byte[] ProcessIncoming( byte[] data )
         {
-            return CryptoHelper.SymmetricDecrypt( data, sessionKey );
+            try
+            {
+                return CryptoHelper.SymmetricDecrypt( data, sessionKey );
+            }
+            catch ( CryptographicException ex )
+            {
+                DebugLog.WriteLine( "NetFilterEncryption", "Unable to decrypt incoming packet: " + ex.Message );
+
+                // rethrow as an IO exception so it's handled in the network thread
+                throw new IOException( "Unable to decrypt incoming packet", ex );
+            }
         }
 
         public byte[] ProcessOutgoing( byte[] ms )

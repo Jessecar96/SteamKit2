@@ -1876,5 +1876,163 @@ namespace SteamKit2.Internal
 		}
 	}
 
+	public class MsgClientLoggedOff : ISteamSerializableMessage
+	{
+		public EMsg GetEMsg() { return EMsg.ClientLoggedOff; }
+
+		// Static size: 4
+		public EResult Result { get; set; }
+		// Static size: 4
+		public int SecMinReconnectHint { get; set; }
+		// Static size: 4
+		public int SecMaxReconnectHint { get; set; }
+
+		public MsgClientLoggedOff()
+		{
+			Result = 0;
+			SecMinReconnectHint = 0;
+			SecMaxReconnectHint = 0;
+		}
+
+		public void Serialize(Stream stream)
+		{
+			BinaryWriter bw = new BinaryWriter( stream );
+
+			bw.Write( (int)Result );
+			bw.Write( SecMinReconnectHint );
+			bw.Write( SecMaxReconnectHint );
+
+		}
+
+		public void Deserialize( Stream stream )
+		{
+			BinaryReader br = new BinaryReader( stream );
+
+			Result = (EResult)br.ReadInt32();
+			SecMinReconnectHint = br.ReadInt32();
+			SecMaxReconnectHint = br.ReadInt32();
+		}
+	}
+
+	public class MsgClientLogOnResponse : ISteamSerializableMessage
+	{
+		public EMsg GetEMsg() { return EMsg.ClientLogOnResponse; }
+
+		// Static size: 4
+		public EResult Result { get; set; }
+		// Static size: 4
+		public int OutOfGameHeartbeatRateSec { get; set; }
+		// Static size: 4
+		public int InGameHeartbeatRateSec { get; set; }
+		// Static size: 8
+		private ulong clientSuppliedSteamId;
+		public SteamID ClientSuppliedSteamId { get { return new SteamID( clientSuppliedSteamId ); } set { clientSuppliedSteamId = value.ConvertToUInt64(); } }
+		// Static size: 4
+		public uint IpPublic { get; set; }
+		// Static size: 4
+		public uint ServerRealTime { get; set; }
+
+		public MsgClientLogOnResponse()
+		{
+			Result = 0;
+			OutOfGameHeartbeatRateSec = 0;
+			InGameHeartbeatRateSec = 0;
+			clientSuppliedSteamId = 0;
+			IpPublic = 0;
+			ServerRealTime = 0;
+		}
+
+		public void Serialize(Stream stream)
+		{
+			BinaryWriter bw = new BinaryWriter( stream );
+
+			bw.Write( (int)Result );
+			bw.Write( OutOfGameHeartbeatRateSec );
+			bw.Write( InGameHeartbeatRateSec );
+			bw.Write( clientSuppliedSteamId );
+			bw.Write( IpPublic );
+			bw.Write( ServerRealTime );
+
+		}
+
+		public void Deserialize( Stream stream )
+		{
+			BinaryReader br = new BinaryReader( stream );
+
+			Result = (EResult)br.ReadInt32();
+			OutOfGameHeartbeatRateSec = br.ReadInt32();
+			InGameHeartbeatRateSec = br.ReadInt32();
+			clientSuppliedSteamId = br.ReadUInt64();
+			IpPublic = br.ReadUInt32();
+			ServerRealTime = br.ReadUInt32();
+		}
+	}
+
+	public class MsgClientSendGuestPass : ISteamSerializableMessage
+	{
+		public EMsg GetEMsg() { return EMsg.ClientSendGuestPass; }
+
+		// Static size: 8
+		public ulong GiftId { get; set; }
+		// Static size: 1
+		public byte GiftType { get; set; }
+		// Static size: 4
+		public uint AccountId { get; set; }
+
+		public MsgClientSendGuestPass()
+		{
+			GiftId = 0;
+			GiftType = 0;
+			AccountId = 0;
+		}
+
+		public void Serialize(Stream stream)
+		{
+			BinaryWriter bw = new BinaryWriter( stream );
+
+			bw.Write( GiftId );
+			bw.Write( GiftType );
+			bw.Write( AccountId );
+
+		}
+
+		public void Deserialize( Stream stream )
+		{
+			BinaryReader br = new BinaryReader( stream );
+
+			GiftId = br.ReadUInt64();
+			GiftType = br.ReadByte();
+			AccountId = br.ReadUInt32();
+		}
+	}
+
+	public class MsgClientSendGuestPassResponse : ISteamSerializableMessage
+	{
+		public EMsg GetEMsg() { return EMsg.ClientSendGuestPassResponse; }
+
+		// Static size: 4
+		public EResult Result { get; set; }
+
+		public MsgClientSendGuestPassResponse()
+		{
+			Result = 0;
+		}
+
+		public void Serialize(Stream stream)
+		{
+			BinaryWriter bw = new BinaryWriter( stream );
+
+			bw.Write( (int)Result );
+
+		}
+
+		public void Deserialize( Stream stream )
+		{
+			BinaryReader br = new BinaryReader( stream );
+
+			Result = (EResult)br.ReadInt32();
+		}
+	}
+
 }
 #pragma warning restore 1591

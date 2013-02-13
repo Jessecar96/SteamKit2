@@ -4,7 +4,6 @@
  */
 
 using System;
-using System.Diagnostics;
 using SteamKit2.Internal;
 
 namespace SteamKit2
@@ -59,14 +58,25 @@ namespace SteamKit2
 
 
 #if STATIC_CALLBACKS
-            internal JobCallback( SteamClient client, ulong jobId, T callback )
+            /// <summary>
+            /// Initializes a new instance of the <see cref="JobCallback&lt;T&gt;"/> class.
+            /// </summary>
+            /// <param name="client">The <see cref="SteamClient"/> instance that is posting this callback.</param>
+            /// <param name="jobId">The for this callback.</param>
+            /// <param name="callback">The inner callback object.</param>
+            public JobCallback( SteamClient client, ulong jobId, T callback )
                 : base( client, jobId )
 #else
-            internal JobCallback( JobID jobId, T callback )
+            /// <summary>
+            /// Initializes a new instance of the <see cref="JobCallback&lt;T&gt;"/> class.
+            /// </summary>
+            /// <param name="jobId">The for this callback.</param>
+            /// <param name="callback">The inner callback object.</param>
+            public JobCallback( JobID jobId, T callback )
                 : base( jobId )
 #endif
             {
-                Debug.Assert( jobId != ulong.MaxValue, "JobCallback used for non job based callback!" );
+                DebugLog.Assert( jobId != ulong.MaxValue, "JobCallback", "JobCallback used for non job based callback!" );
 
                 Callback = callback;
             }

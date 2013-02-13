@@ -75,27 +75,32 @@ namespace SteamKit2
         /// <param name="depotVersion">The depot version.</param>
         /// <param name="cellId">The cell id.</param>
         /// <param name="credentials">The credentials.</param>
+        /// <param name="doHandshake">Whether or not to send the handshake and reopen cell</param>
         /// <returns>A new StorageSession object for the session.</returns>
-        public StorageSession OpenStorage( uint depotId, uint depotVersion, uint cellId, Credentials credentials )
+        public StorageSession OpenStorage( uint depotId, uint depotVersion, uint cellId, Credentials credentials, bool doHandshake = true )
         {
-            bool bRet = this.HandshakeServer( ( ESteam2ServerType )7 );
+            if (doHandshake)
+            {
+                bool bRet = this.HandshakeServer((ESteam2ServerType)7);
 
-            if ( !bRet )
-                throw new Steam2Exception( "Storage handshake with content server failed" );
+                if (!bRet)
+                    throw new Steam2Exception("Storage handshake with content server failed");
 
-            bRet = this.SendCommand(
-                0, // open storage
-                cellId
-            );
+                bRet = this.SendCommand(
+                    0, // open storage
+                    cellId
+                );
 
-            byte success = this.Socket.Reader.ReadByte();
+                byte success = this.Socket.Reader.ReadByte();
 
-            if ( success == 0 )
-                throw new Steam2Exception( string.Format( "Unable to open storage depot for cellid {0}", cellId ) );
+                if (success == 0)
+                    throw new Steam2Exception(string.Format("Unable to open storage depot for cellid {0}", cellId));
 
-            ushort bannerLen = NetHelpers.EndianSwap( this.Socket.Reader.ReadUInt16() );
-            byte[] bannerData = this.Socket.Reader.ReadBytes( bannerLen );
 
+                ushort bannerLen = NetHelpers.EndianSwap(this.Socket.Reader.ReadUInt16());
+                byte[] bannerData = this.Socket.Reader.ReadBytes(bannerLen);
+            }
+			
             return new StorageSession( this, depotId, depotVersion, credentials );
         }
         /// <summary>
@@ -104,20 +109,22 @@ namespace SteamKit2
         /// <param name="depotId">The depot id.</param>
         /// <param name="depotVersion">The depot version.</param>
         /// <param name="cellId">The cell id.</param>
+		/// <param name="doHandshake">Whether or not to send the handshake and reopen cell</param>
         /// <returns>A new StorageSession object for the session.</returns>
-        public StorageSession OpenStorage( uint depotId, uint depotVersion, uint cellId )
+        public StorageSession OpenStorage( uint depotId, uint depotVersion, uint cellId, bool doHandshake = true )
         {
-            return OpenStorage( depotId, depotVersion, cellId, null );
+            return OpenStorage( depotId, depotVersion, cellId, null, doHandshake );
         }
         /// <summary>
         /// Opens a storage session with the storage server.
         /// </summary>
         /// <param name="depotId">The depot id.</param>
         /// <param name="depotVersion">The depot version.</param>
+        /// <param name="doHandshake">Whether or not to send the handshake and reopen cell</param>
         /// <returns>A new StorageSession object for the session.</returns>
-        public StorageSession OpenStorage( uint depotId, uint depotVersion )
+        public StorageSession OpenStorage( uint depotId, uint depotVersion, bool doHandshake = true )
         {
-            return OpenStorage( depotId, depotVersion, 0 );
+            return OpenStorage( depotId, depotVersion, 0, doHandshake );
         }
 
         /// <summary>
@@ -241,7 +248,7 @@ namespace SteamKit2
 
                 bool bRet = false;
 
-                if ( credentials == null )
+                if ( credentials == null || credentials.Steam2Ticket == null )
                 {
                     bRet = this.SendCommand(
                         9, // open storage
@@ -430,6 +437,34 @@ namespace SteamKit2
             }
 
             /// <summary>
+            /// Downloads a specific file from the Steam servers to the specified Stream.
+            /// </summary>
+            /// <param name="file">The file to download, given from the manifest.</param>
+            /// <param name="downloadStream">The stream to which file data should be written.</param>
+            /// <param name="priority">The download priority.</param>
+            /// <param name="cryptKey">The AES encryption key used for any encrypted files.</param>
+            /// <returns>A byte array representing the file.</returns>
+            public void DownloadFileToStream(Steam2Manifest.Node file, Stream downloadStream, DownloadPriority priority = DownloadPriority.Low, byte[] cryptKey = null)
+            {
+                if ((file.Attributes & Steam2Manifest.Node.Attribs.EncryptedFile) != 0 && cryptKey == null)
+                {
+                    throw new Steam2Exception(string.Format("AES encryption key required for file: {0}", file.FullName));
+                }
+
+                const uint MaxParts = 16;
+
+                uint numFileparts = (uint)Math.Ceiling((float)file.SizeOrCount / (float)file.Parent.BlockSize);
+                uint numChunks = (uint)Math.Ceiling((float)numFileparts / (float)MaxParts);
+
+                for (uint x = 0; x < numChunks; ++x)
+                {
+                    byte[] filePart = DownloadFileParts(file, x * MaxParts, MaxParts, priority, cryptKey);
+
+                    downloadStream.Write(filePart, 0, filePart.Length);
+                }
+            }
+
+            /// <summary>
             /// Downloads a specific file from the Steam servers.
             /// </summary>
             /// <param name="file">The file to download, given from the manifest.</param>
@@ -438,26 +473,11 @@ namespace SteamKit2
             /// <returns>A byte array representing the file.</returns>
             public byte[] DownloadFile( Steam2Manifest.Node file, DownloadPriority priority = DownloadPriority.Low, byte[] cryptKey = null )
             {
-                if ( ( file.Attributes & Steam2Manifest.Node.Attribs.EncryptedFile ) != 0 && cryptKey == null )
+                using (var ms = new MemoryStream())
                 {
-                    throw new Steam2Exception( string.Format( "AES encryption key required for file: {0}", file.FullName ) );
+                    DownloadFileToStream( file, ms, priority, cryptKey );
+                    return ms.ToArray();
                 }
-
-                const uint MaxParts = 16;
-
-                uint numFileparts = ( uint )Math.Ceiling( ( float )file.SizeOrCount / ( float )file.Parent.BlockSize );
-                uint numChunks = ( uint )Math.Ceiling( ( float )numFileparts / ( float )MaxParts );
-
-                MemoryStream ms = new MemoryStream();
-
-                for ( uint x = 0 ; x < numChunks ; ++x )
-                {
-                    byte[] filePart = DownloadFileParts( file, x * MaxParts, MaxParts, priority, cryptKey );
-
-                    ms.Write( filePart, 0, filePart.Length );
-                }
-
-                return ms.ToArray();
             }
 
             byte[] DownloadFileParts( Steam2Manifest.Node file, uint filePart, uint numParts, DownloadPriority priority = DownloadPriority.Low, byte[] cryptKey = null )

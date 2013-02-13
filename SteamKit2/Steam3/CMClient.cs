@@ -54,10 +54,10 @@ namespace SteamKit2.Internal
             // IPAddress.Parse( "81.171.115.6" ),
             // IPAddress.Parse( "81.171.115.7" ),
             // IPAddress.Parse( "81.171.115.8" ),
-
+            
             // Limelight, Japan
-            IPAddress.Parse( "203.77.185.4" ),
-            IPAddress.Parse( "203.77.185.5" ),
+            // IPAddress.Parse( "203.77.185.4" ),
+            // IPAddress.Parse( "203.77.185.5" ),
 
             // Limelight, Seattle
             IPAddress.Parse( "208.111.133.84" ),
@@ -81,19 +81,24 @@ namespace SteamKit2.Internal
 
         /// <summary>
         /// Gets the connected universe of this client.
+        /// This value will be <see cref="EUniverse.Invalid"/> if the client is logged off of Steam.
         /// </summary>
         /// <value>The universe.</value>
         public EUniverse ConnectedUniverse { get; private set; }
+
         /// <summary>
         /// Gets the session ID of this client. This value is assigned after a logon attempt has succeeded.
+        /// This value will be <c>null</c> if the client is logged off of Steam.
         /// </summary>
         /// <value>The session ID.</value>
         public int? SessionID { get; private set; }
         /// <summary>
         /// Gets the SteamID of this client. This value is assigned after a logon attempt has succeeded.
+        /// This value will be <c>null</c> if the client is logged off of Steam.
         /// </summary>
         /// <value>The SteamID.</value>
         public SteamID SteamID { get; private set; }
+
 
         Connection connection;
         byte[] tempSessionKey;
@@ -154,13 +159,32 @@ namespace SteamKit2.Internal
         /// </param>
         public void Connect( bool bEncrypted = true )
         {
+            Random random = new Random();
+            var server = Servers[ random.Next( Servers.Length ) ];
+
+            this.Connect( server, bEncrypted );
+        }
+
+        /// <summary>
+        /// Connects this client to the specified Steam3 server.
+        /// This begins the process of connecting and encrypting the data channel between the client and the server.
+        /// Results are returned asynchronously in a <see cref="SteamClient.ConnectedCallback"/>.
+        /// If the server that SteamKit attempts to connect to is down, a <see cref="SteamClient.DisconnectedCallback"/>
+        /// will be posted instead.
+        /// SteamKit will not attempt to reconnect to Steam, you must handle this callback and call Connect again
+        /// preferrably after a short delay.
+        /// </summary>
+        /// <param name="cmServer">The <see cref="IPAddress"/> of the CM server to connect to.</param>
+        /// <param name="bEncrypted">
+        /// If set to <c>true</c> the underlying connection to Steam will be encrypted. This is the default mode of communication.
+        /// Previous versions of SteamKit always used encryption.
+        /// </param>
+        public void Connect( IPAddress cmServer, bool bEncrypted = true )
+        {
             this.Disconnect();
             encrypted = bEncrypted;
 
-            Random random = new Random();
-
-            var server = Servers[ random.Next( Servers.Length ) ];
-            var endPoint = new IPEndPoint( server, bEncrypted ? PortCM_PublicEncrypted : PortCM_Public );
+            var endPoint = new IPEndPoint( cmServer, bEncrypted ? PortCM_PublicEncrypted : PortCM_Public );
 
             connection.Connect( endPoint );
         }
@@ -273,7 +297,7 @@ namespace SteamKit2.Internal
             OnClientMsgReceived( GetPacketMsg( e.Data ) );
         }
 
-        void Connected(object sender, EventArgs e)
+        void Connected( object sender, EventArgs e )
         {
             // If we're on an encrypted connection, we wait for the handshake to complete
             if ( encrypted )
@@ -364,10 +388,11 @@ namespace SteamKit2.Internal
         {
             if ( !packetMsg.IsProto )
             {
-                DebugLog.WriteLine( "CMClient", "HandleLogOnResponse got non-proto MsgClientLogonResponse!!" );
+                // a non proto ClientLogonResponse can come in as a result of connecting but never sending a ClientLogon
+                // in this case, it always fails, so we don't need to do anything special here
+                DebugLog.WriteLine( "CMClient", "Got non-proto logon response, this is indicative of no logon attempt after connecting." );
                 return;
             }
-
 
             var logonResp = new ClientMsgProtobuf<CMsgClientLogonResponse>( packetMsg );
 

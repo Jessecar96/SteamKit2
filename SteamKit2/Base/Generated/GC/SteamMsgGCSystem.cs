@@ -90,9 +90,6 @@ namespace SteamKit2.GC.Internal
       [global::ProtoBuf.ProtoEnum(Name=@"k_EGCMsgGetAccountDetails_DEPRECATED", Value=71)]
       k_EGCMsgGetAccountDetails_DEPRECATED = 71,
             
-      [global::ProtoBuf.ProtoEnum(Name=@"k_EGCMsgSendInterAppMessage", Value=72)]
-      k_EGCMsgSendInterAppMessage = 72,
-            
       [global::ProtoBuf.ProtoEnum(Name=@"k_EGCMsgReceiveInterAppMessage", Value=73)]
       k_EGCMsgReceiveInterAppMessage = 73,
             
@@ -187,7 +184,13 @@ namespace SteamKit2.GC.Internal
       k_EGCMsgMemCachedSet = 202,
             
       [global::ProtoBuf.ProtoEnum(Name=@"k_EGCMsgMemCachedDelete", Value=203)]
-      k_EGCMsgMemCachedDelete = 203
+      k_EGCMsgMemCachedDelete = 203,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"k_EGCMsgMasterSetDirectory", Value=220)]
+      k_EGCMsgMasterSetDirectory = 220,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"k_EGCMsgMasterSetDirectoryResponse", Value=221)]
+      k_EGCMsgMasterSetDirectoryResponse = 221
     }
   
     [global::ProtoBuf.ProtoContract(Name=@"ESOMsg")]
@@ -217,6 +220,32 @@ namespace SteamKit2.GC.Internal
             
       [global::ProtoBuf.ProtoEnum(Name=@"k_ESOMsg_CacheSubscriptionRefresh", Value=28)]
       k_ESOMsg_CacheSubscriptionRefresh = 28
+    }
+  
+    [global::ProtoBuf.ProtoContract(Name=@"EGCToGCMsg")]
+    public enum EGCToGCMsg
+    {
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"k_EGCToGCMsgMasterAck", Value=150)]
+      k_EGCToGCMsgMasterAck = 150,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"k_EGCToGCMsgMasterAckResponse", Value=151)]
+      k_EGCToGCMsgMasterAckResponse = 151,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"k_EGCToGCMsgRouted", Value=152)]
+      k_EGCToGCMsgRouted = 152,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"k_EGCToGCMsgRoutedReply", Value=153)]
+      k_EGCToGCMsgRoutedReply = 153,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgUpdateSessionIP", Value=154)]
+      k_EMsgUpdateSessionIP = 154,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgRequestSessionIP", Value=155)]
+      k_EMsgRequestSessionIP = 155,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgRequestSessionIPResponse", Value=156)]
+      k_EMsgRequestSessionIPResponse = 156
     }
   
 }
