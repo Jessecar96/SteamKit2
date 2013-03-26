@@ -20,7 +20,7 @@ namespace SteamKit2
         public byte[] Data { get; private set; }
         public IPEndPoint EndPoint { get; private set; }
 
-        public NetMsgEventArgs( byte[] data, IPEndPoint endPoint )
+        public NetMsgEventArgs(byte[] data, IPEndPoint endPoint)
         {
             this.Data = data;
             this.EndPoint = endPoint;
@@ -31,36 +31,38 @@ namespace SteamKit2
     {
         byte[] sessionKey;
 
-        public NetFilterEncryption( byte[] sessionKey )
+        public NetFilterEncryption(byte[] sessionKey)
         {
-            DebugLog.Assert( sessionKey.Length == 32, "NetFilterEncryption", "AES session key was not 32 bytes!" );
+            DebugLog.Assert(sessionKey.Length == 32, "NetFilterEncryption", "AES session key was not 32 bytes!");
 
             this.sessionKey = sessionKey;
         }
 
-        public byte[] ProcessIncoming( byte[] data )
+        public byte[] ProcessIncoming(byte[] data)
         {
             try
             {
-                return CryptoHelper.SymmetricDecrypt( data, sessionKey );
+                return CryptoHelper.SymmetricDecrypt(data, sessionKey);
             }
-            catch ( CryptographicException ex )
+            catch (CryptographicException ex)
             {
-                DebugLog.WriteLine( "NetFilterEncryption", "Unable to decrypt incoming packet: " + ex.Message );
+                DebugLog.WriteLine("NetFilterEncryption", "Unable to decrypt incoming packet: " + ex.Message);
 
                 // rethrow as an IO exception so it's handled in the network thread
-                throw new IOException( "Unable to decrypt incoming packet", ex );
+                throw new IOException("Unable to decrypt incoming packet", ex);
             }
         }
 
-        public byte[] ProcessOutgoing( byte[] ms )
+        public byte[] ProcessOutgoing(byte[] ms)
         {
-            return CryptoHelper.SymmetricEncrypt( ms, sessionKey );
+            return CryptoHelper.SymmetricEncrypt(ms, sessionKey);
         }
     }
 
     abstract class Connection
     {
+        const int DEFAULT_TIMEOUT = 5000;
+
         /// <summary>
         /// Gets or sets the net filter for this connection.
         /// </summary>
@@ -76,10 +78,10 @@ namespace SteamKit2
         /// Raises the <see cref="E:NetMsgReceived"/> event.
         /// </summary>
         /// <param name="e">The <see cref="SteamKit2.NetMsgEventArgs"/> instance containing the event data.</param>
-        protected void OnNetMsgReceived( NetMsgEventArgs e )
+        protected void OnNetMsgReceived(NetMsgEventArgs e)
         {
-            if ( NetMsgReceived != null )
-                NetMsgReceived( this, e );
+            if (NetMsgReceived != null)
+                NetMsgReceived(this, e);
         }
 
         /// <summary>
@@ -96,17 +98,18 @@ namespace SteamKit2
         /// Occurs when the physical connection is broken.
         /// </summary>
         public event EventHandler Disconnected;
-        protected void OnDisconnected( EventArgs e )
+        protected void OnDisconnected(EventArgs e)
         {
-            if ( Disconnected != null )
-                Disconnected( this, e );
+            if (Disconnected != null)
+                Disconnected(this, e);
         }
 
         /// <summary>
         /// Connects to the specified end point.
         /// </summary>
         /// <param name="endPoint">The end point.</param>
-        public abstract void Connect( IPEndPoint endPoint );
+        /// <param name="timeout">Timeout in milliseconds</param>
+        public abstract void Connect(IPEndPoint endPoint, int timeout = DEFAULT_TIMEOUT);
         /// <summary>
         /// Disconnects this instance.
         /// </summary>
@@ -116,7 +119,7 @@ namespace SteamKit2
         /// Sends the specified client net message.
         /// </summary>
         /// <param name="clientMsg">The client net message.</param>
-        public abstract void Send( IClientMsg clientMsg );
+        public abstract void Send(IClientMsg clientMsg);
 
         /// <summary>
         /// Gets the local IP.

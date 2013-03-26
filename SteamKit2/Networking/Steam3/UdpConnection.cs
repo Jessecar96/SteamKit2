@@ -104,7 +104,8 @@ namespace SteamKit2
         /// Connects to the specified CM server.
         /// </summary>
         /// <param name="endPoint">The CM server.</param>
-        public override void Connect(IPEndPoint endPoint)
+        /// <param name="timeout">Timeout in milliseconds</param>
+        public override void Connect(IPEndPoint endPoint, int timeout)
         {
             Disconnect();
 
@@ -133,7 +134,7 @@ namespace SteamKit2
         /// </summary>
         public override void Disconnect()
         {
-            if ( netThread == null )
+            if (netThread == null)
                 return;
 
             // Play nicely and let the server know that we're done. Other party is expected to Ack this,
@@ -155,35 +156,35 @@ namespace SteamKit2
         /// <param name="clientMsg">The ClientMsg</param>
         public override void Send(IClientMsg clientMsg)
         {
-            if ( state != State.Connected )
+            if (state != State.Connected)
                 return;
 
             byte[] data = clientMsg.Serialize();
 
-            if ( NetFilter != null )
-                data = NetFilter.ProcessOutgoing( data );
+            if (NetFilter != null)
+                data = NetFilter.ProcessOutgoing(data);
 
-            SendData( new MemoryStream( data ) );
+            SendData(new MemoryStream(data));
         }
 
         /// <summary>
         /// Sends the data sequenced as a single message, splitting it into multiple parts if necessary.
         /// </summary>
         /// <param name="ms">The data to send.</param>
-        private void SendData( MemoryStream ms )
+        private void SendData(MemoryStream ms)
         {
-            UdpPacket[] packets = new UdpPacket[ ( ms.Length / UdpPacket.MAX_PAYLOAD ) + 1 ];
+            UdpPacket[] packets = new UdpPacket[(ms.Length / UdpPacket.MAX_PAYLOAD) + 1];
 
-            for ( int i = 0 ; i < packets.Length ; i++ )
+            for (int i = 0; i < packets.Length; i++)
             {
                 long index = i * UdpPacket.MAX_PAYLOAD;
-                long length = Math.Min( UdpPacket.MAX_PAYLOAD, ms.Length - index );
+                long length = Math.Min(UdpPacket.MAX_PAYLOAD, ms.Length - index);
 
-                packets[ i ] = new UdpPacket( EUdpPacketType.Data, ms, length );
-                packets[ i ].Header.MsgSize = ( uint )ms.Length;
+                packets[i] = new UdpPacket(EUdpPacketType.Data, ms, length);
+                packets[i].Header.MsgSize = (uint)ms.Length;
             }
 
-            SendSequenced( packets );
+            SendSequenced(packets);
         }
 
         /// <summary>
@@ -209,12 +210,12 @@ namespace SteamKit2
         {
             uint msgStart = outSeq;
 
-            foreach ( UdpPacket packet in packets )
+            foreach (UdpPacket packet in packets)
             {
                 SendSequenced(packet);
 
                 // Correct for any assumptions made for the single-packet case.
-                packet.Header.PacketsInMsg = (uint) packets.Length;
+                packet.Header.PacketsInMsg = (uint)packets.Length;
                 packet.Header.MsgStartSeq = msgStart;
             }
         }
@@ -239,7 +240,7 @@ namespace SteamKit2
             {
                 sock.SendTo(data, remoteEndPoint);
             }
-            catch ( SocketException e )
+            catch (SocketException e)
             {
                 DebugLog.WriteLine("UdpConnection", "Critical socket failure: " + e.ErrorCode);
 
@@ -249,12 +250,12 @@ namespace SteamKit2
 
             // If we've been idle but completely acked for more than two seconds, the next sent
             // packet will trip the resend detection. This fixes that.
-            if ( outSeqSent == outSeqAcked )
+            if (outSeqSent == outSeqAcked)
                 nextResend = DateTime.Now.AddSeconds(RESEND_DELAY);
 
             // Sending should generally carry on from the packet most recently sent, even if it was a
             // resend (who knows what else was lost).
-            if ( packet.Header.SeqThis > 0 )
+            if (packet.Header.SeqThis > 0)
                 outSeqSent = packet.Header.SeqThis;
         }
 
@@ -272,21 +273,21 @@ namespace SteamKit2
         /// </summary>
         private void SendPendingMessages()
         {
-            if ( DateTime.Now > nextResend && outSeqSent > outSeqAcked )
+            if (DateTime.Now > nextResend && outSeqSent > outSeqAcked)
             {
                 DebugLog.WriteLine("UdpConnection", "Sequenced packet resend required");
 
                 // Don't send more than 3 (Steam behavior?)
-                for ( int i = 0; i < RESEND_COUNT && i < outPackets.Count; i++ )
+                for (int i = 0; i < RESEND_COUNT && i < outPackets.Count; i++)
                     SendPacket(outPackets[i]);
 
                 nextResend = DateTime.Now.AddSeconds(RESEND_DELAY);
             }
-            else if ( outSeqSent < outSeqAcked + AHEAD_COUNT )
+            else if (outSeqSent < outSeqAcked + AHEAD_COUNT)
             {
                 // I've never seen Steam send more than 4 packets before it gets an Ack, so this limits the
                 // number of sequenced packets that can be sent out at one time.
-                for ( int i = (int) ( outSeqSent - outSeqAcked ); i < AHEAD_COUNT && i < outPackets.Count; i++ )
+                for (int i = (int)(outSeqSent - outSeqAcked); i < AHEAD_COUNT && i < outPackets.Count; i++)
                     SendPacket(outPackets[i]);
             }
         }
@@ -300,12 +301,12 @@ namespace SteamKit2
             UdpPacket packet;
 
             // Make sure that the first packet of the next message to handle is present
-            if ( !inPackets.TryGetValue(inSeqHandled + 1, out packet) )
+            if (!inPackets.TryGetValue(inSeqHandled + 1, out packet))
                 return 0;
 
             // ...and if relevant, all subparts of the message also
-            for ( uint i = 1; i < packet.Header.PacketsInMsg; i++ )
-                if ( !inPackets.ContainsKey(inSeqHandled + 1 + i) )
+            for (uint i = 1; i < packet.Header.PacketsInMsg; i++)
+                if (!inPackets.ContainsKey(inSeqHandled + 1 + i))
                     return 0;
 
             return packet.Header.PacketsInMsg;
@@ -319,11 +320,11 @@ namespace SteamKit2
         {
             uint numPackets = ReadyMessageParts();
 
-            if ( numPackets == 0 )
+            if (numPackets == 0)
                 return false;
 
             MemoryStream payload = new MemoryStream();
-            for ( uint i = 0; i < numPackets; i++ )
+            for (uint i = 0; i < numPackets; i++)
             {
                 UdpPacket packet;
 
@@ -335,7 +336,7 @@ namespace SteamKit2
 
             byte[] data = payload.ToArray();
 
-            if ( NetFilter != null )
+            if (NetFilter != null)
                 data = NetFilter.ProcessIncoming(data);
 
             DebugLog.WriteLine("UdpConnection", "Dispatching message; {0} bytes", data.Length);
@@ -352,7 +353,7 @@ namespace SteamKit2
         {
             // Variables that will be used deeper in the function; locating them here avoids recreating
             // them since they don't need to be.
-            EndPoint packetSender = (EndPoint) new IPEndPoint(IPAddress.Any, 0);
+            EndPoint packetSender = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
             byte[] buf = new byte[2048];
 
             timeOut = DateTime.Now.AddSeconds(TIMEOUT_DELAY);
@@ -362,13 +363,13 @@ namespace SteamKit2
             SendPacket(new UdpPacket(EUdpPacketType.ChallengeReq));
             state = State.ChallengeReqSent;
 
-            while ( state != State.Disconnected )
+            while (state != State.Disconnected)
             {
                 try
                 {
                     // Wait up to 150ms for data, if none is found and the timeout is exceeded, we're done here.
-                    if ( !sock.Poll(150000, SelectMode.SelectRead)
-                        && DateTime.Now > timeOut )
+                    if (!sock.Poll(150000, SelectMode.SelectRead)
+                        && DateTime.Now > timeOut)
                     {
                         DebugLog.WriteLine("UdpConnection", "Connection timed out");
 
@@ -378,12 +379,12 @@ namespace SteamKit2
 
                     // By using a 10ms wait, we allow for multiple packets sent at the time to all be processed before moving on
                     // to processing output and therefore Acks (the more we process at the same time, the fewer acks we have to send)
-                    while ( sock.Poll(10000, SelectMode.SelectRead) )
+                    while (sock.Poll(10000, SelectMode.SelectRead))
                     {
                         int length = sock.ReceiveFrom(buf, ref packetSender);
 
                         // Ignore packets that aren't sent by the server we're connected to.
-                        if ( !packetSender.Equals(remoteEndPoint) )
+                        if (!packetSender.Equals(remoteEndPoint))
                             continue;
 
                         // Data from the desired server was received; delay timeout
@@ -395,7 +396,7 @@ namespace SteamKit2
                         ReceivePacket(packet);
                     }
                 }
-                catch ( SocketException e )
+                catch (SocketException e)
                 {
                     DebugLog.WriteLine("UdpConnection", "Critical socket failure: " + e.ErrorCode);
 
@@ -405,17 +406,17 @@ namespace SteamKit2
 
                 // Send or resend any sequenced packets; a call to ReceivePacket can set our state to disconnected
                 // so don't send anything we have queued in that case
-                if ( state != State.Disconnected )
+                if (state != State.Disconnected)
                     SendPendingMessages();
 
                 // If we received data but had no data to send back, we need to manually Ack (usually tags along with
                 // outgoing data); also acks disconnections
-                if ( inSeq != inSeqAcked )
+                if (inSeq != inSeqAcked)
                     SendAck();
 
                 // If a graceful shutdown has been requested, nothing in the outgoing queue is discarded.
                 // Once it's empty, we exit, since the last packet was our disconnect notification.
-                if ( state == State.Disconnecting && outPackets.Count == 0 )
+                if (state == State.Disconnecting && outPackets.Count == 0)
                 {
                     DebugLog.WriteLine("UdpConnection", "Graceful disconnect completed");
 
@@ -434,9 +435,9 @@ namespace SteamKit2
         private void ReceivePacket(UdpPacket packet)
         {
             // Check for a malformed packet
-            if ( !packet.IsValid )
+            if (!packet.IsValid)
                 return;
-            else if ( remoteConnId > 0 && packet.Header.SourceConnID != remoteConnId )
+            else if (remoteConnId > 0 && packet.Header.SourceConnID != remoteConnId)
                 return;
 
             DebugLog.WriteLine("UdpConnection", "<- Recv'd {0} Seq {1} Ack {2}; {3} bytes; Message: {4} bytes {5} packets",
@@ -445,7 +446,7 @@ namespace SteamKit2
 
             // Throw away any duplicate messages we've already received, making sure to
             // re-ack it in case it got lost.
-            if ( packet.Header.PacketType == EUdpPacketType.Data && packet.Header.SeqThis < inSeq )
+            if (packet.Header.PacketType == EUdpPacketType.Data && packet.Header.SeqThis < inSeq)
             {
                 SendAck();
                 return;
@@ -453,25 +454,25 @@ namespace SteamKit2
 
             // When we get a SeqAck, all packets with sequence numbers below that have been safely received by
             // the server; we are now free to remove our copies
-            if ( outSeqAcked < packet.Header.SeqAck )
+            if (outSeqAcked < packet.Header.SeqAck)
             {
                 outSeqAcked = packet.Header.SeqAck;
 
                 // outSeqSent can be less than this in a very rare case involving resent packets.
-                if ( outSeqSent < outSeqAcked )
+                if (outSeqSent < outSeqAcked)
                     outSeqSent = outSeqAcked;
 
-                outPackets.RemoveAll( x => x.Header.SeqThis <= outSeqAcked );
+                outPackets.RemoveAll(x => x.Header.SeqThis <= outSeqAcked);
                 nextResend = DateTime.Now.AddSeconds(RESEND_DELAY);
             }
 
             // inSeq should always be the latest value that we can ack, so advance it as far as is possible.
-            if ( packet.Header.SeqThis == inSeq + 1 )
+            if (packet.Header.SeqThis == inSeq + 1)
                 do
                     inSeq++;
-                while ( inPackets.ContainsKey(inSeq + 1) );
+                while (inPackets.ContainsKey(inSeq + 1));
 
-            switch ( packet.Header.PacketType )
+            switch (packet.Header.PacketType)
             {
                 case EUdpPacketType.Challenge:
                     ReceiveChallenge(packet);
@@ -505,7 +506,7 @@ namespace SteamKit2
         /// <param name="packet">The packet.</param>
         private void ReceiveChallenge(UdpPacket packet)
         {
-            if ( state != State.ChallengeReqSent )
+            if (state != State.ChallengeReqSent)
                 return;
 
             ChallengeData cr = new ChallengeData();
@@ -531,7 +532,7 @@ namespace SteamKit2
         /// <param name="packet">The packet.</param>
         private void ReceiveAccept(UdpPacket packet)
         {
-            if ( state != State.ConnectSent )
+            if (state != State.ConnectSent)
                 return;
 
             DebugLog.WriteLine("UdpConnection", "Connection established");
@@ -540,7 +541,7 @@ namespace SteamKit2
             remoteConnId = packet.Header.SourceConnID;
             inSeqHandled = packet.Header.SeqThis;
 
-            OnConnected( EventArgs.Empty );
+            OnConnected(EventArgs.Empty);
         }
 
         /// <summary>
@@ -550,17 +551,17 @@ namespace SteamKit2
         private void ReceiveData(UdpPacket packet)
         {
             // Data packets are unexpected if a valid connection has not been established
-            if ( state != State.Connected && state != State.Disconnecting )
+            if (state != State.Connected && state != State.Disconnecting)
                 return;
 
             // If we receive a packet that we've already processed (e.g. it got resent due to a lost ack)
             // or that is already waiting to be processed, do nothing.
-            if ( packet.Header.SeqThis <= inSeqHandled || inPackets.ContainsKey(packet.Header.SeqThis) )
+            if (packet.Header.SeqThis <= inSeqHandled || inPackets.ContainsKey(packet.Header.SeqThis))
                 return;
 
             inPackets.Add(packet.Header.SeqThis, packet);
 
-            while ( DispatchMessage() ) ;
+            while (DispatchMessage()) ;
         }
 
         public override IPAddress GetLocalIP()

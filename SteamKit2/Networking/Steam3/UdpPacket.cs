@@ -48,12 +48,12 @@ namespace SteamKit2
             {
                 Header.Deserialize(ms);
             }
-            catch ( Exception )
+            catch (Exception)
             {
                 return;
             }
 
-            if ( this.Header.Magic != UdpHeader.MAGIC )
+            if (this.Header.Magic != UdpHeader.MAGIC)
                 return;
 
             SetPayload(ms, Header.PayloadSize);
@@ -119,15 +119,15 @@ namespace SteamKit2
         /// <param name="length">The length.</param>
         public void SetPayload(MemoryStream ms, long length)
         {
-            if ( length > MAX_PAYLOAD )
+            if (length > MAX_PAYLOAD)
                 throw new ArgumentException("Payload length exceeds 0x4DC maximum");
 
             byte[] buf = new byte[length];
             ms.Read(buf, 0, buf.Length);
 
             Payload = new MemoryStream(buf);
-            Header.PayloadSize = (ushort) Payload.Length;
-            Header.MsgSize = (uint) Payload.Length;
+            Header.PayloadSize = (ushort)Payload.Length;
+            Header.MsgSize = (uint)Payload.Length;
         }
 
         /// <summary>
@@ -136,12 +136,12 @@ namespace SteamKit2
         /// <returns>The serialized packet.</returns>
         public byte[] GetData()
         {
-            using ( MemoryStream ms = new MemoryStream() )
+            using (MemoryStream ms = new MemoryStream())
             {
-                Header.Serialize( ms );
+                Header.Serialize(ms);
 
-                Payload.Seek( 0, SeekOrigin.Begin );
-                Payload.WriteTo( ms );
+                Payload.Seek(0, SeekOrigin.Begin);
+                Payload.WriteTo(ms);
 
                 return ms.ToArray();
             }
