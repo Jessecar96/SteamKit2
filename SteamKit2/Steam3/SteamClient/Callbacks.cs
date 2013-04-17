@@ -4,6 +4,9 @@
  */
 
 using System;
+using System.Collections.ObjectModel;
+using System.Net;
+using System.Linq;
 using SteamKit2.Internal;
 
 namespace SteamKit2
@@ -31,7 +34,7 @@ namespace SteamKit2
             internal BaseJobCallback( SteamClient client, ulong jobId )
                 : base( client )
 #else
-            internal BaseJobCallback( ulong jobId )
+            internal BaseJobCallback(ulong jobId)
 #endif
             {
                 this.JobID = jobId;
@@ -49,7 +52,7 @@ namespace SteamKit2
             /// <summary>
             /// Gets the type of the callback.
             /// </summary>
-            public override Type CallbackType { get { return typeof( T ); } }
+            public override Type CallbackType { get { return typeof(T); } }
 
             /// <summary>
             /// Gets the inner callback message for this job.
@@ -72,11 +75,11 @@ namespace SteamKit2
             /// </summary>
             /// <param name="jobId">The for this callback.</param>
             /// <param name="callback">The inner callback object.</param>
-            public JobCallback( JobID jobId, T callback )
-                : base( jobId )
+            public JobCallback(JobID jobId, T callback)
+                : base(jobId)
 #endif
             {
-                DebugLog.Assert( jobId != ulong.MaxValue, "JobCallback", "JobCallback used for non job based callback!" );
+                DebugLog.Assert(jobId != ulong.MaxValue, "JobCallback", "JobCallback used for non job based callback!");
 
                 Callback = callback;
             }
@@ -98,8 +101,8 @@ namespace SteamKit2
             internal ConnectedCallback( SteamClient client, MsgChannelEncryptResult result )
                 : this( client, result.Result )
 #else
-            internal ConnectedCallback( MsgChannelEncryptResult result )
-                : this( result.Result )
+            internal ConnectedCallback(MsgChannelEncryptResult result)
+                : this(result.Result)
 #endif
             {
             }
@@ -108,7 +111,7 @@ namespace SteamKit2
             internal ConnectedCallback( SteamClient client, EResult result )
                 : base( client )
 #else
-            internal ConnectedCallback( EResult result )
+            internal ConnectedCallback(EResult result)
 #endif
             {
                 this.Result = result;
@@ -127,6 +130,32 @@ namespace SteamKit2
             {
             }
 #endif
+        }
+
+
+        /// <summary>
+        /// This callback is received when the client has received the CM list from Steam.
+        /// </summary>
+        public sealed class CMListCallback : CallbackMsg
+        {
+            /// <summary>
+            /// Gets the CM server list.
+            /// </summary>
+            public ReadOnlyCollection<IPEndPoint> Servers { get; private set; }
+
+
+#if STATIC_CALLBACKS
+            internal CMListCallback( SteamClient client, CMsgClientCMList cmMsg )
+                : base( client )
+#else
+            internal CMListCallback(CMsgClientCMList cmMsg)
+#endif
+            {
+                var cmList = cmMsg.cm_addresses
+                    .Zip(cmMsg.cm_ports, (addr, port) => new IPEndPoint(NetHelpers.GetIPAddress(addr), (int)port));
+
+                Servers = new ReadOnlyCollection<IPEndPoint>(cmList.ToList());
+            }
         }
     }
 }

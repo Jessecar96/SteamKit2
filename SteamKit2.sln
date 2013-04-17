@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+# Visual Studio Express 2012 for Windows Desktop
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SteamKit2", "SteamKit2\SteamKit2.csproj", "{BEB5BF07-BB56-402A-97A3-A41C6444C6A5}"
 EndProject
 Global
@@ -23,26 +23,6 @@ Global
 		{BEB5BF07-BB56-402A-97A3-A41C6444C6A5}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{BEB5BF07-BB56-402A-97A3-A41C6444C6A5}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{BEB5BF07-BB56-402A-97A3-A41C6444C6A5}.Release|x86.ActiveCfg = Release|Any CPU
-		{EBF5B7D5-58F4-4F68-A997-1BE71A72F078}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EBF5B7D5-58F4-4F68-A997-1BE71A72F078}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EBF5B7D5-58F4-4F68-A997-1BE71A72F078}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{EBF5B7D5-58F4-4F68-A997-1BE71A72F078}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{EBF5B7D5-58F4-4F68-A997-1BE71A72F078}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{EBF5B7D5-58F4-4F68-A997-1BE71A72F078}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EBF5B7D5-58F4-4F68-A997-1BE71A72F078}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EBF5B7D5-58F4-4F68-A997-1BE71A72F078}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{EBF5B7D5-58F4-4F68-A997-1BE71A72F078}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{EBF5B7D5-58F4-4F68-A997-1BE71A72F078}.Release|x86.ActiveCfg = Release|Any CPU
-		{D5D926AB-4C3F-43A7-A513-A4BF4157E6CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D5D926AB-4C3F-43A7-A513-A4BF4157E6CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D5D926AB-4C3F-43A7-A513-A4BF4157E6CC}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{D5D926AB-4C3F-43A7-A513-A4BF4157E6CC}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{D5D926AB-4C3F-43A7-A513-A4BF4157E6CC}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{D5D926AB-4C3F-43A7-A513-A4BF4157E6CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D5D926AB-4C3F-43A7-A513-A4BF4157E6CC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D5D926AB-4C3F-43A7-A513-A4BF4157E6CC}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{D5D926AB-4C3F-43A7-A513-A4BF4157E6CC}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{D5D926AB-4C3F-43A7-A513-A4BF4157E6CC}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

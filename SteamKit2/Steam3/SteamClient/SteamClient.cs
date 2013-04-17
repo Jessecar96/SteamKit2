@@ -44,8 +44,8 @@ namespace SteamKit2
         /// Initializes a new instance of the <see cref="SteamClient"/> class with a specific connection type.
         /// </summary>
         /// <param name="type">The connection type to use.</param>
-        public SteamClient( ProtocolType type = ProtocolType.Tcp )
-            : base( type )
+        public SteamClient(ProtocolType type = ProtocolType.Tcp)
+            : base(type)
         {
 #if !STATIC_CALLBACKS
             callbackQueue = new Queue<CallbackMsg>();
@@ -53,16 +53,16 @@ namespace SteamKit2
             this.handlers = new Dictionary<Type, ClientMsgHandler>();
 
             // add this library's handlers
-            this.AddHandler( new SteamUser() );
-            this.AddHandler( new SteamFriends() );
-            this.AddHandler( new SteamApps() );
-            this.AddHandler( new SteamGameCoordinator() );
-            this.AddHandler( new SteamGameServer() );
-            this.AddHandler( new SteamUserStats() );
-            this.AddHandler( new SteamMasterServer() );
-            this.AddHandler( new SteamCloud() );
-            this.AddHandler( new SteamWorkshop() );
-            this.AddHandler( new SteamTrading() );
+            this.AddHandler(new SteamUser());
+            this.AddHandler(new SteamFriends());
+            this.AddHandler(new SteamApps());
+            this.AddHandler(new SteamGameCoordinator());
+            this.AddHandler(new SteamGameServer());
+            this.AddHandler(new SteamUserStats());
+            this.AddHandler(new SteamMasterServer());
+            this.AddHandler(new SteamCloud());
+            this.AddHandler(new SteamWorkshop());
+            this.AddHandler(new SteamTrading());
         }
 
 
@@ -72,33 +72,33 @@ namespace SteamKit2
         /// </summary>
         /// <param name="handler">The handler to add.</param>
         /// <exception cref="InvalidOperationException">A handler of that type is already registered.</exception>
-        public void AddHandler( ClientMsgHandler handler )
+        public void AddHandler(ClientMsgHandler handler)
         {
-            if ( handlers.ContainsKey( handler.GetType() ) )
-                throw new InvalidOperationException( string.Format( "A handler of type \"{0}\" is already registered.", handler.GetType() ) );
+            if (handlers.ContainsKey(handler.GetType()))
+                throw new InvalidOperationException(string.Format("A handler of type \"{0}\" is already registered.", handler.GetType()));
 
-            handlers[ handler.GetType() ] = handler;
-            handler.Setup( this );
+            handlers[handler.GetType()] = handler;
+            handler.Setup(this);
         }
 
         /// <summary>
         /// Removes a registered handler by name.
         /// </summary>
         /// <param name="handler">The handler name to remove.</param>
-        public void RemoveHandler( Type handler )
+        public void RemoveHandler(Type handler)
         {
-            if ( !handlers.ContainsKey( handler ) )
+            if (!handlers.ContainsKey(handler))
                 return;
 
-            handlers.Remove( handler );
+            handlers.Remove(handler);
         }
         /// <summary>
         /// Removes a registered handler.
         /// </summary>
         /// <param name="handler">The handler to remove.</param>
-        public void RemoveHandler( ClientMsgHandler handler )
+        public void RemoveHandler(ClientMsgHandler handler)
         {
-            this.RemoveHandler( handler.GetType() );
+            this.RemoveHandler(handler.GetType());
         }
 
         /// <summary>
@@ -111,10 +111,10 @@ namespace SteamKit2
         public T GetHandler<T>()
             where T : ClientMsgHandler
         {
-            Type type = typeof( T );
+            Type type = typeof(T);
 
-            if ( handlers.ContainsKey( type ) )
-                return handlers[ type ] as T;
+            if (handlers.ContainsKey(type))
+                return handlers[type] as T;
 
             return null;
         }
@@ -134,7 +134,7 @@ namespace SteamKit2
         public CallbackMsg GetCallback()
 #endif
         {
-            return GetCallback( false );
+            return GetCallback(false);
         }
         /// <summary>
         /// Gets the next callback object in the queue, and optionally frees it.
@@ -145,13 +145,13 @@ namespace SteamKit2
         [Obsolete( "Static callback handling is deprecated and will be removed in a future version of SteamKit2" )]
         public static CallbackMsg GetCallback( bool freeLast )
 #else
-        public CallbackMsg GetCallback( bool freeLast )
+        public CallbackMsg GetCallback(bool freeLast)
 #endif
         {
-            lock ( callbackLock )
+            lock (callbackLock)
             {
-                if ( callbackQueue.Count > 0 )
-                    return ( freeLast ? callbackQueue.Dequeue() : callbackQueue.Peek() );
+                if (callbackQueue.Count > 0)
+                    return (freeLast ? callbackQueue.Dequeue() : callbackQueue.Peek());
             }
 
             return null;
@@ -169,7 +169,7 @@ namespace SteamKit2
         public CallbackMsg WaitForCallback()
 #endif
         {
-            return WaitForCallback( false );
+            return WaitForCallback(false);
         }
         /// <summary>
         /// Blocks the calling thread until a callback object is posted to the queue, or null after the timeout has elapsed.
@@ -181,14 +181,14 @@ namespace SteamKit2
         [Obsolete( "Static callback handling is deprecated and will be removed in a future version of SteamKit2" )]
         public static CallbackMsg WaitForCallback( TimeSpan timeout )
 #else
-        public CallbackMsg WaitForCallback( TimeSpan timeout )
+        public CallbackMsg WaitForCallback(TimeSpan timeout)
 #endif
         {
-            lock ( callbackLock )
+            lock (callbackLock)
             {
-                if ( callbackQueue.Count == 0 )
+                if (callbackQueue.Count == 0)
                 {
-                    if ( !Monitor.Wait( callbackLock, timeout ) )
+                    if (!Monitor.Wait(callbackLock, timeout))
                         return null;
                 }
 
@@ -204,15 +204,15 @@ namespace SteamKit2
         [Obsolete( "Static callback handling is deprecated and will be removed in a future version of SteamKit2" )]
         public static CallbackMsg WaitForCallback( bool freeLast )
 #else
-        public CallbackMsg WaitForCallback( bool freeLast )
+        public CallbackMsg WaitForCallback(bool freeLast)
 #endif
         {
-            lock ( callbackLock )
+            lock (callbackLock)
             {
-                if ( callbackQueue.Count == 0 )
-                    Monitor.Wait( callbackLock );
+                if (callbackQueue.Count == 0)
+                    Monitor.Wait(callbackLock);
 
-                return ( freeLast ? callbackQueue.Dequeue() : callbackQueue.Peek() );
+                return (freeLast ? callbackQueue.Dequeue() : callbackQueue.Peek());
             }
         }
         /// <summary>
@@ -225,18 +225,18 @@ namespace SteamKit2
         [Obsolete( "Static callback handling is deprecated and will be removed in a future version of SteamKit2" )]
         public static CallbackMsg WaitForCallback( bool freeLast, TimeSpan timeout )
 #else
-        public CallbackMsg WaitForCallback( bool freeLast, TimeSpan timeout )
+        public CallbackMsg WaitForCallback(bool freeLast, TimeSpan timeout)
 #endif
         {
-            lock ( callbackLock )
+            lock (callbackLock)
             {
-                if ( callbackQueue.Count == 0 )
+                if (callbackQueue.Count == 0)
                 {
-                    if ( !Monitor.Wait( callbackLock, timeout ) )
+                    if (!Monitor.Wait(callbackLock, timeout))
                         return null;
                 }
 
-                return ( freeLast ? callbackQueue.Dequeue() : callbackQueue.Peek() );
+                return (freeLast ? callbackQueue.Dequeue() : callbackQueue.Peek());
             }
         }
 
@@ -250,9 +250,9 @@ namespace SteamKit2
         public void FreeLastCallback()
 #endif
         {
-            lock ( callbackLock )
+            lock (callbackLock)
             {
-                if ( callbackQueue.Count == 0 )
+                if (callbackQueue.Count == 0)
                     return;
 
                 callbackQueue.Dequeue();
@@ -266,16 +266,16 @@ namespace SteamKit2
 #if STATIC_CALLBACKS
         public static void PostCallback( CallbackMsg msg )
 #else
-        public void PostCallback( CallbackMsg msg )
+        public void PostCallback(CallbackMsg msg)
 #endif
         {
-            if ( msg == null )
+            if (msg == null)
                 return;
 
-            lock ( callbackLock )
+            lock (callbackLock)
             {
-                callbackQueue.Enqueue( msg );
-                Monitor.Pulse( callbackLock );
+                callbackQueue.Enqueue(msg);
+                Monitor.Pulse(callbackLock);
             }
         }
         #endregion
@@ -288,7 +288,7 @@ namespace SteamKit2
         /// <returns>The next available JobID.</returns>
         public JobID GetNextJobID()
         {
-            return ( ulong )Interlocked.Increment( ref currentJobId );
+            return (ulong)Interlocked.Increment(ref currentJobId);
         }
 
 
@@ -296,18 +296,26 @@ namespace SteamKit2
         /// Called when a client message is received from the network.
         /// </summary>
         /// <param name="packetMsg">The packet message.</param>
-        protected override void OnClientMsgReceived( IPacketMsg packetMsg )
+        protected override void OnClientMsgReceived(IPacketMsg packetMsg)
         {
             // let the underlying CMClient handle this message first
-            base.OnClientMsgReceived( packetMsg );
+            base.OnClientMsgReceived(packetMsg);
 
-            if ( packetMsg.MsgType == EMsg.ChannelEncryptResult )
-                HandleEncryptResult( packetMsg ); // we're interested in this client message to post the connected callback
+            switch (packetMsg.MsgType)
+            {
+                case EMsg.ChannelEncryptResult:
+                    HandleEncryptResult(packetMsg); // we're interested in this client message to post the connected callback
+                    break;
+
+                case EMsg.ClientCMList:
+                    HandleCMList(packetMsg);
+                    break;
+            }
 
             // pass along the clientmsg to all registered handlers
-            foreach ( var kvp in handlers )
+            foreach (var kvp in handlers)
             {
-                kvp.Value.HandleMsg( packetMsg );
+                kvp.Value.HandleMsg(packetMsg);
             }
         }
         /// <summary>
@@ -318,30 +326,30 @@ namespace SteamKit2
 #if STATIC_CALLBACKS
             SteamClient.PostCallback( new DisconnectedCallback( this ) );
 #else
-            this.PostCallback( new DisconnectedCallback() );
-#endif
-        }
-        /// <summary>
-        /// Called when the client is connected to Steam3 and is ready to send messages.
-        /// </summary>
-        protected override void OnClientConnected()
-        {
-#if STATIC_CALLBACKS
-            SteamClient.PostCallback( new ConnectedCallback( this, EResult.OK ) );
-#else
-            PostCallback( new ConnectedCallback( EResult.OK ) );
+            this.PostCallback(new DisconnectedCallback());
 #endif
         }
 
 
-        void HandleEncryptResult( IPacketMsg packetMsg )
+        void HandleEncryptResult(IPacketMsg packetMsg)
         {
-            var encResult = new Msg<MsgChannelEncryptResult>( packetMsg );
+            var encResult = new Msg<MsgChannelEncryptResult>(packetMsg);
 
 #if STATIC_CALLBACKS
             SteamClient.PostCallback( new ConnectedCallback( this, encResult.Body ) );
 #else
-            PostCallback( new ConnectedCallback( encResult.Body ) );
+            PostCallback(new ConnectedCallback(encResult.Body));
+#endif
+        }
+
+        void HandleCMList(IPacketMsg packetMsg)
+        {
+            var cmMsg = new ClientMsgProtobuf<CMsgClientCMList>(packetMsg);
+
+#if STATIC_CALLBACKS
+            SteamClient.PostCallback( new CMListCallback( this, cmMsg.Body ) );
+#else
+            PostCallback(new CMListCallback(cmMsg.Body));
 #endif
         }
 
