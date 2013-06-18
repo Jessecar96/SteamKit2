@@ -19,6 +19,7 @@ namespace SteamKit2
         private static UInt32 EndOfDirectoryHeader = 0x06054b50;
 
         private static UInt16 DeflateCompression = 8;
+        private static UInt16 StoreCompression = 0;
 
         private static UInt16 Version = 20;
 
@@ -34,7 +35,8 @@ namespace SteamKit2
 
                 string fileName;
                 UInt32 decompressedSize;
-                byte[] compressedBuffer = ReadLocalFile( reader, out fileName, out decompressedSize );
+                UInt16 compressionMethod;
+                byte[] compressedBuffer = ReadLocalFile( reader, out fileName, out decompressedSize, out compressionMethod );
 
                 if ( !PeekHeader( reader, CentralDirectoryHeader ) )
                 {
@@ -51,7 +53,10 @@ namespace SteamKit2
 
                 UInt32 count = ReadEndOfDirectory( reader );
 
-                return InflateBuffer( compressedBuffer, decompressedSize );
+                if ( compressionMethod == DeflateCompression )
+                    return InflateBuffer( compressedBuffer, decompressedSize );
+                else
+                    return compressedBuffer;
             }
         }
 
@@ -60,12 +65,7 @@ namespace SteamKit2
             using ( MemoryStream ms = new MemoryStream() )
             using ( BinaryWriter writer = new BinaryWriter( ms ) )
             {
-                uint checkSum = 0;
-
-                using ( var crc = new Crc32() )
-                {
-                    checkSum = BitConverter.ToUInt32( crc.ComputeHash( buffer ), 0 );
-                }
+                uint checkSum = Crc32.Compute(buffer);
 
                 byte[] compressed = DeflateBuffer( buffer );
 
@@ -187,7 +187,7 @@ namespace SteamKit2
             UInt16 bitflags = reader.ReadUInt16();
             UInt16 compression = reader.ReadUInt16();
 
-            if ( compression != DeflateCompression )
+            if ( compression != DeflateCompression && compression != StoreCompression )
             {
                 throw new Exception( "Invalid compression method " + compression );
             }
@@ -217,15 +217,15 @@ namespace SteamKit2
             return relativeOffset;
         }
 
-        private static byte[] ReadLocalFile( BinaryReader reader, out String fileName, out UInt32 decompressedSize )
+        private static byte[] ReadLocalFile( BinaryReader reader, out String fileName, out UInt32 decompressedSize, out UInt16 compressionMethod )
         {
             UInt16 version = reader.ReadUInt16();
             UInt16 bitflags = reader.ReadUInt16();
-            UInt16 compression = reader.ReadUInt16();
+            compressionMethod = reader.ReadUInt16();
 
-            if ( compression != DeflateCompression )
+            if ( compressionMethod != DeflateCompression && compressionMethod != StoreCompression )
             {
-                throw new Exception( "Invalid compression method " + compression );
+                throw new Exception( "Invalid compression method " + compressionMethod );
             }
 
             UInt16 modtime = reader.ReadUInt16();

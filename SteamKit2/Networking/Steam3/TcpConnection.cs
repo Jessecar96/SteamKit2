@@ -35,61 +35,61 @@ namespace SteamKit2
         /// </summary>
         /// <param name="endPoint">The end point.</param>
         /// <param name="timeout">Timeout in milliseconds</param>
-        public override void Connect(IPEndPoint endPoint, int timeout)
+        public override void Connect( IPEndPoint endPoint, int timeout )
         {
             // if we're connected, disconnect
             Disconnect();
 
-            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            DebugLog.WriteLine("TcpConnection", "Connecting to {0}...", endPoint);
+            Socket socket = new Socket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
+            DebugLog.WriteLine( "TcpConnection", "Connecting to {0}...", endPoint );
 
-            ThreadPool.QueueUserWorkItem(sender =>
+            ThreadPool.QueueUserWorkItem( sender =>
             {
-                var asyncResult = socket.BeginConnect(endPoint, null, null);
+                var asyncResult = socket.BeginConnect( endPoint, null, null );
 
-                if (asyncResult.AsyncWaitHandle.WaitOne(timeout))
+                if ( asyncResult.AsyncWaitHandle.WaitOne( timeout ) )
                 {
                     sock = socket;
-                    ConnectCompleted(socket);
+                    ConnectCompleted( socket );
                 }
                 else
                 {
                     socket.Close();
-                    ConnectCompleted(null);
+                    ConnectCompleted( null );
                 }
             });
         }
 
-        void ConnectCompleted(Socket sock)
+        void ConnectCompleted( Socket sock )
         {
-            if (sock == null)
+            if ( sock == null )
             {
-                OnDisconnected(EventArgs.Empty);
+                OnDisconnected( EventArgs.Empty );
                 return;
             }
 
-            if (!sock.Connected)
+            if ( !sock.Connected )
             {
-                DebugLog.WriteLine("TcpConnection", "Unable to connect");
-                OnDisconnected(EventArgs.Empty);
+                DebugLog.WriteLine( "TcpConnection", "Unable to connect" );
+                OnDisconnected( EventArgs.Empty );
                 return;
             }
 
-            DebugLog.WriteLine("TcpConnection", "Connected!");
+            DebugLog.WriteLine( "TcpConnection", "Connected!" );
 
             isConnected = true;
 
-            netStream = new NetworkStream(sock, false);
+            netStream = new NetworkStream( sock, false );
 
-            netReader = new BinaryReader(netStream);
-            netWriter = new BinaryWriter(netStream);
+            netReader = new BinaryReader( netStream );
+            netWriter = new BinaryWriter( netStream );
 
             // initialize our network thread
-            netThread = new Thread(NetLoop);
+            netThread = new Thread( NetLoop );
             netThread.Name = "TcpConnection Thread";
             netThread.Start();
 
-            OnConnected(EventArgs.Empty);
+            OnConnected( EventArgs.Empty );
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace SteamKit2
         /// </summary>
         public override void Disconnect()
         {
-            if (!isConnected)
+            if ( !isConnected )
                 return;
 
             isConnected = false;
@@ -108,36 +108,36 @@ namespace SteamKit2
 
             Cleanup();
 
-            OnDisconnected(EventArgs.Empty);
+            OnDisconnected( EventArgs.Empty );
         }
 
         /// <summary>
         /// Sends the specified client net message.
         /// </summary>
         /// <param name="clientMsg">The client net message.</param>
-        public override void Send(IClientMsg clientMsg)
+        public override void Send( IClientMsg clientMsg )
         {
-            if (!isConnected)
+            if ( !isConnected )
             {
-                DebugLog.WriteLine("TcpConnection", "Attempting to send client message when not connected: {0}", clientMsg.MsgType);
+                DebugLog.WriteLine( "TcpConnection", "Attempting to send client message when not connected: {0}", clientMsg.MsgType );
                 return;
             }
 
             byte[] data = clientMsg.Serialize();
 
             // encrypt outgoing traffic if we need to
-            if (NetFilter != null)
+            if ( NetFilter != null )
             {
-                data = NetFilter.ProcessOutgoing(data);
+                data = NetFilter.ProcessOutgoing( data );
             }
 
-            lock (sock)
+            lock ( sock )
             {
                 // write header
-                netWriter.Write((uint)data.Length);
-                netWriter.Write(TcpConnection.MAGIC);
+                netWriter.Write( ( uint )data.Length );
+                netWriter.Write( TcpConnection.MAGIC );
 
-                netWriter.Write(data);
+                netWriter.Write( data );
             }
 
         }
@@ -149,18 +149,18 @@ namespace SteamKit2
         void NetLoop()
         {
             // poll for readable data every 100ms
-            const int POLL_MS = 100;
+            const int POLL_MS = 100; 
 
-            while (true)
+            while ( true )
             {
-                if (!isConnected)
+                if ( !isConnected )
                 {
                     break;
                 }
 
-                bool canRead = sock.Poll(POLL_MS * 1000, SelectMode.SelectRead);
+                bool canRead = sock.Poll( POLL_MS * 1000, SelectMode.SelectRead );
 
-                if (!canRead)
+                if ( !canRead )
                 {
                     // nothing to read yet
                     continue;
@@ -188,76 +188,76 @@ namespace SteamKit2
                     packetLen = netReader.ReadUInt32();
                     packetMagic = netReader.ReadUInt32();
                 }
-                catch (IOException ex)
+                catch ( IOException ex )
                 {
-                    throw new IOException("Connection lost while reading packet header.", ex);
+                    throw new IOException( "Connection lost while reading packet header.", ex );
                 }
 
-                if (packetMagic != TcpConnection.MAGIC)
+                if ( packetMagic != TcpConnection.MAGIC )
                 {
-                    throw new IOException("Got a packet with invalid magic!");
+                    throw new IOException( "Got a packet with invalid magic!" );
                 }
 
                 // rest of the packet is the physical data
-                packData = netReader.ReadBytes((int)packetLen);
+                packData = netReader.ReadBytes( ( int )packetLen );
 
-                if (packData.Length != packetLen)
+                if ( packData.Length != packetLen )
                 {
-                    throw new IOException("Connection lost while reading packet payload");
+                    throw new IOException( "Connection lost while reading packet payload" );
                 }
 
                 // decrypt the data off the wire if needed
-                if (NetFilter != null)
+                if ( NetFilter != null )
                 {
-                    packData = NetFilter.ProcessIncoming(packData);
+                    packData = NetFilter.ProcessIncoming( packData );
                 }
             }
-            catch (IOException ex)
+            catch ( IOException ex )
             {
-                DebugLog.WriteLine("TcpConnection", "Socket exception occurred while reading packet: {0}", ex);
+                DebugLog.WriteLine( "TcpConnection", "Socket exception occurred while reading packet: {0}", ex );
 
                 // signal that our connection is dead
                 isConnected = false;
 
                 Cleanup();
 
-                OnDisconnected(EventArgs.Empty);
+                OnDisconnected( EventArgs.Empty );
                 return;
             }
 
-            OnNetMsgReceived(new NetMsgEventArgs(packData, sock.RemoteEndPoint as IPEndPoint));
+            OnNetMsgReceived( new NetMsgEventArgs( packData, sock.RemoteEndPoint as IPEndPoint ) );
         }
 
         void Cleanup()
         {
             // cleanup streams
-            if (netReader != null)
+            if ( netReader != null )
             {
                 netReader.Dispose();
                 netReader = null;
             }
 
-            if (netWriter != null)
+            if ( netWriter != null )
             {
                 netWriter.Dispose();
                 netWriter = null;
             }
 
-            if (netStream != null)
+            if ( netStream != null )
             {
                 netStream.Dispose();
                 netStream = null;
             }
 
-            if (sock != null)
+            if ( sock != null )
             {
                 try
                 {
                     // cleanup socket
-                    if (sock.Connected)
+                    if ( sock.Connected )
                     {
-                        sock.Shutdown(SocketShutdown.Both);
-                        sock.Disconnect(true);
+                        sock.Shutdown( SocketShutdown.Both );
+                        sock.Disconnect( true );
                     }
                     sock.Close();
                 }
@@ -279,7 +279,7 @@ namespace SteamKit2
         /// <returns>The local IP.</returns>
         public override IPAddress GetLocalIP()
         {
-            return NetHelpers.GetLocalIP(sock);
+            return NetHelpers.GetLocalIP( sock );
         }
     }
 }

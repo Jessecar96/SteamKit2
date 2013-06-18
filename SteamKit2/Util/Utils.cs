@@ -21,6 +21,11 @@ namespace SteamKit2
             DateTime origin = new DateTime( 1970, 1, 1, 0, 0, 0, 0 );
             return origin.AddSeconds( unixTime );
         }
+        public static uint DateTimeToUnixTime( DateTime time )
+        {
+            DateTime origin = new DateTime( 1970, 1, 1, 0, 0, 0, 0 );
+            return ( uint )( time - origin ).TotalSeconds;
+        }
 
         public static string EncodeHexString(byte[] input)
         {
@@ -330,6 +335,29 @@ namespace SteamKit2
         public static ushort EndianSwap( ushort input )
         {
             return ( ushort )IPAddress.NetworkToHostOrder( ( short )input );
+        }
+    }
+
+    class TimeoutableWebClient : WebClient
+    {
+        public int Timeout { get; set; }
+
+
+        public TimeoutableWebClient()
+        {
+            // msdn docs state that the default timeout of a HttpWebRequest is 100,000 milliseconds (100 sec)
+            Timeout = 100000;
+        }
+
+
+        protected override WebRequest GetWebRequest( Uri address )
+        {
+            var webReq = base.GetWebRequest( address );
+
+            if ( webReq != null )
+                webReq.Timeout = Timeout;
+
+            return webReq;
         }
     }
 }

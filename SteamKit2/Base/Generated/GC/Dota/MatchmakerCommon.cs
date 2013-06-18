@@ -22,7 +22,10 @@ namespace SteamKit2.GC.Dota.Internal
       MATCH_TYPE_COOP_BOTS = 1,
             
       [global::ProtoBuf.ProtoEnum(Name=@"MATCH_TYPE_TEAM_RANKED", Value=2)]
-      MATCH_TYPE_TEAM_RANKED = 2
+      MATCH_TYPE_TEAM_RANKED = 2,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"MATCH_TYPE_SOLO_QUEUE", Value=3)]
+      MATCH_TYPE_SOLO_QUEUE = 3
     }
   
     [global::ProtoBuf.ProtoContract(Name=@"DOTABotDifficulty")]
@@ -46,6 +49,20 @@ namespace SteamKit2.GC.Dota.Internal
             
       [global::ProtoBuf.ProtoEnum(Name=@"BOT_DIFFICULTY_INVALID", Value=5)]
       BOT_DIFFICULTY_INVALID = 5
+    }
+  
+    [global::ProtoBuf.ProtoContract(Name=@"MatchLanguages")]
+    public enum MatchLanguages
+    {
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"MATCH_LANGUAGE_ENGLISH", Value=1)]
+      MATCH_LANGUAGE_ENGLISH = 1,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"MATCH_LANGUAGE_RUSSIAN", Value=2)]
+      MATCH_LANGUAGE_RUSSIAN = 2,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"MATCH_LANGUAGE_CHINESE", Value=3)]
+      MATCH_LANGUAGE_CHINESE = 3
     }
   
 }

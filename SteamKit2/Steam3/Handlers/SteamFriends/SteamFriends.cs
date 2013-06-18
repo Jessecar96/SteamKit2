@@ -481,6 +481,25 @@ namespace SteamKit2
 
 
         /// <summary>
+        /// Requests profile information for the given <see cref="SteamID"/>.
+        /// Results are returned in a <see cref="ProfileInfoCallback"/>.
+        /// </summary>
+        /// <param name="steamId">The SteamID of the friend to request the details of.</param>
+        /// <returns>The Job ID of the request. This can be used to find the appropriate <see cref="SteamClient.JobCallback&lt;T&gt;"/>.</returns>
+        public JobID RequestProfileInfo( SteamID steamId )
+        {
+            var request = new ClientMsgProtobuf<CMsgClientFriendProfileInfo>( EMsg.ClientFriendProfileInfo );
+            request.SourceJobID = Client.GetNextJobID();
+
+            request.Body.steamid_friend = steamId;
+
+            this.Client.Send( request );
+
+            return request.SourceJobID;
+        }
+
+
+        /// <summary>
         /// Handles a client message. This should not be called directly.
         /// </summary>
         /// <param name="packetMsg">The packet message that contains the data.</param>
@@ -490,6 +509,10 @@ namespace SteamKit2
             {
                 case EMsg.ClientPersonaState:
                     HandlePersonaState( packetMsg );
+                    break;
+
+                case EMsg.ClientClanState:
+                    HandleClanState( packetMsg );
                     break;
 
                 case EMsg.ClientFriendsList:
@@ -531,6 +554,10 @@ namespace SteamKit2
                 case EMsg.ClientSetIgnoreFriendResponse:
                     HandleIgnoreFriendResponse( packetMsg );
                     break;
+
+                case EMsg.ClientFriendProfileInfoResponse:
+                    HandleProfileInfoResponse( packetMsg );
+                    break;
             }
         }
 
@@ -547,13 +574,8 @@ namespace SteamKit2
         {
             var friendMsg = new ClientMsgProtobuf<CMsgClientFriendMsgIncoming>( packetMsg );
 
-#if STATIC_CALLBACKS
-            var callback = new FriendMsgCallback( Client, friendMsg.Body );
-            SteamClient.PostCallback( callback );
-#else
             var callback = new FriendMsgCallback( friendMsg.Body );
             this.Client.PostCallback( callback );
-#endif
         }
         void HandleFriendsList( IPacketMsg packetMsg )
         {
@@ -642,13 +664,8 @@ namespace SteamKit2
                 this.Client.Send( reqInfo );
             }
 
-#if STATIC_CALLBACKS
-            var callback = new FriendsListCallback( Client, list.Body );
-            SteamClient.PostCallback( callback );
-#else
             var callback = new FriendsListCallback( list.Body );
             this.Client.PostCallback( callback );
-#endif
         }
         void HandlePersonaState( IPacketMsg packetMsg )
         {
@@ -673,9 +690,10 @@ namespace SteamKit2
                     {
                         cacheFriend.AvatarHash = friend.avatar_hash;
                         cacheFriend.PersonaState = ( EPersonaState )friend.persona_state;
+                        cacheFriend.PersonaStateFlags = ( EPersonaStateFlag )friend.persona_state_flags;
                     }
 
-                    if ( ( flags & EClientPersonaStateFlag.GameExtraInfo ) == EClientPersonaStateFlag.GameExtraInfo )
+                    if ( ( flags & EClientPersonaStateFlag.GameDataBlob ) == EClientPersonaStateFlag.GameDataBlob )
                     {
                         cacheFriend.GameName = friend.game_name;
                         cacheFriend.GameID = friend.gameid;
@@ -705,38 +723,30 @@ namespace SteamKit2
 
             foreach ( var friend in perState.Body.friends )
             {
-#if STATIC_CALLBACKS
-                var callback = new PersonaStateCallback( Client, friend );
-                SteamClient.PostCallback( callback );
-#else
                 var callback = new PersonaStateCallback( friend );
                 this.Client.PostCallback( callback );
-#endif
             }
+        }
+        void HandleClanState( IPacketMsg packetMsg )
+        {
+            var clanState = new ClientMsgProtobuf<CMsgClientClanState>( packetMsg );
+
+            var callback = new ClanStateCallback( clanState.Body );
+            this.Client.PostCallback( callback );
         }
         void HandleFriendResponse( IPacketMsg packetMsg )
         {
             var friendResponse = new ClientMsgProtobuf<CMsgClientAddFriendResponse>( packetMsg );
 
-#if STATIC_CALLBACKS
-            var callback = new FriendAddedCallback( Client, friendResponse.Body );
-            SteamClient.PostCallback( callback );
-#else
             var callback = new FriendAddedCallback( friendResponse.Body );
             this.Client.PostCallback( callback );
-#endif
         }
         void HandleChatEnter( IPacketMsg packetMsg )
         {
             var chatEnter = new ClientMsg<MsgClientChatEnter>( packetMsg );
 
-#if STATIC_CALLBACKS
-            var callback = new ChatEnterCallback( Client, chatEnter.Body );
-            SteamClient.PostCallback( callback );
-#else
             var callback = new ChatEnterCallback( chatEnter.Body );
             this.Client.PostCallback( callback );
-#endif
         }
         void HandleChatMsg( IPacketMsg packetMsg )
         {
@@ -744,13 +754,8 @@ namespace SteamKit2
 
             byte[] msgData = chatMsg.Payload.ToArray();
 
-#if STATIC_CALLBACKS
-            var callback = new ChatMsgCallback( Client, chatMsg.Body, msgData );
-            SteamClient.PostCallback( callback );
-#else
             var callback = new ChatMsgCallback( chatMsg.Body, msgData );
             this.Client.PostCallback( callback );
-#endif
         }
         void HandleChatMemberInfo( IPacketMsg packetMsg )
         {
@@ -758,51 +763,38 @@ namespace SteamKit2
 
             byte[] payload = membInfo.Payload.ToArray();
 
-#if STATIC_CALLBACKS
-            var callback = new ChatMemberInfoCallback( Client, membInfo.Body, payload );
-            SteamClient.PostCallback( callback );
-#else
             var callback = new ChatMemberInfoCallback( membInfo.Body, payload );
             this.Client.PostCallback( callback );
-#endif
         }
         void HandleChatActionResult( IPacketMsg packetMsg )
         {
             var actionResult = new ClientMsg<MsgClientChatActionResult>( packetMsg );
 
-#if STATIC_CALLBACKS
-            var callback = new ChatActionResultCallback( Client, actionResult.Body );
-            SteamClient.PostCallback( callback );
-#else
             var callback = new ChatActionResultCallback( actionResult.Body );
             this.Client.PostCallback( callback );
-#endif
         }
         void HandleChatInvite( IPacketMsg packetMsg )
         {
             var chatInvite = new ClientMsgProtobuf<CMsgClientChatInvite>( packetMsg );
 
-#if STATIC_CALLBACKS
-            var callback = new ChatInviteCallback( Client, chatInvite.Body );
-            SteamClient.PostCallback( callback );
-#else
             var callback = new ChatInviteCallback( chatInvite.Body );
             this.Client.PostCallback( callback );
-#endif
         }
         void HandleIgnoreFriendResponse( IPacketMsg packetMsg )
         {
             var response = new ClientMsg<MsgClientSetIgnoreFriendResponse>( packetMsg );
 
-#if STATIC_CALLBACKS
-            var innerCallback = new IgnoreFriendCallback( Client, response.Body );
-            var callback = new SteamClient.JobCallback<IgnoreFriendCallback>( Client, response.TargetJobID, innerCallback );
-            SteamClient.PostCallback( callback );
-#else
             var innerCallback = new IgnoreFriendCallback( response.Body );
             var callback = new SteamClient.JobCallback<IgnoreFriendCallback>( response.TargetJobID, innerCallback );
             this.Client.PostCallback( callback );
-#endif
+        }
+        void HandleProfileInfoResponse( IPacketMsg packetMsg )
+        {
+            var response = new ClientMsgProtobuf<CMsgClientFriendProfileInfoResponse>( packetMsg );
+
+            var innerCallback = new ProfileInfoCallback( response.Body );
+            var callback = new SteamClient.JobCallback<ProfileInfoCallback>( packetMsg.TargetJobID, innerCallback );
+            Client.PostCallback( callback );
         }
         #endregion
     }

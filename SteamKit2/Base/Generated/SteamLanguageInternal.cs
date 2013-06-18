@@ -1812,14 +1812,15 @@ namespace SteamKit2.Internal
 		private ulong mySteamId;
 		public SteamID MySteamId { get { return new SteamID( mySteamId ); } set { mySteamId = value.ConvertToUInt64(); } }
 		// Static size: 8
-		public ulong SteamIdFriend { get; set; }
+		private ulong steamIdFriend;
+		public SteamID SteamIdFriend { get { return new SteamID( steamIdFriend ); } set { steamIdFriend = value.ConvertToUInt64(); } }
 		// Static size: 1
 		public byte Ignore { get; set; }
 
 		public MsgClientSetIgnoreFriend()
 		{
 			mySteamId = 0;
-			SteamIdFriend = 0;
+			steamIdFriend = 0;
 			Ignore = 0;
 		}
 
@@ -1828,7 +1829,7 @@ namespace SteamKit2.Internal
 			BinaryWriter bw = new BinaryWriter( stream );
 
 			bw.Write( mySteamId );
-			bw.Write( SteamIdFriend );
+			bw.Write( steamIdFriend );
 			bw.Write( Ignore );
 
 		}
@@ -1838,7 +1839,7 @@ namespace SteamKit2.Internal
 			BinaryReader br = new BinaryReader( stream );
 
 			mySteamId = br.ReadUInt64();
-			SteamIdFriend = br.ReadUInt64();
+			steamIdFriend = br.ReadUInt64();
 			Ignore = br.ReadByte();
 		}
 	}
@@ -2031,6 +2032,166 @@ namespace SteamKit2.Internal
 			BinaryReader br = new BinaryReader( stream );
 
 			Result = (EResult)br.ReadInt32();
+		}
+	}
+
+	public class MsgClientServerUnavailable : ISteamSerializableMessage
+	{
+		public EMsg GetEMsg() { return EMsg.ClientServerUnavailable; }
+
+		// Static size: 8
+		public ulong JobidSent { get; set; }
+		// Static size: 4
+		public uint EMsgSent { get; set; }
+		// Static size: 4
+		public EServerType EServerTypeUnavailable { get; set; }
+
+		public MsgClientServerUnavailable()
+		{
+			JobidSent = 0;
+			EMsgSent = 0;
+			EServerTypeUnavailable = 0;
+		}
+
+		public void Serialize(Stream stream)
+		{
+			BinaryWriter bw = new BinaryWriter( stream );
+
+			bw.Write( JobidSent );
+			bw.Write( EMsgSent );
+			bw.Write( (int)EServerTypeUnavailable );
+
+		}
+
+		public void Deserialize( Stream stream )
+		{
+			BinaryReader br = new BinaryReader( stream );
+
+			JobidSent = br.ReadUInt64();
+			EMsgSent = br.ReadUInt32();
+			EServerTypeUnavailable = (EServerType)br.ReadInt32();
+		}
+	}
+
+	public class MsgClientCreateChat : ISteamSerializableMessage
+	{
+		public EMsg GetEMsg() { return EMsg.ClientCreateChat; }
+
+		// Static size: 4
+		public EChatRoomType ChatRoomType { get; set; }
+		// Static size: 8
+		private ulong gameId;
+		public GameID GameId { get { return new GameID( gameId ); } set { gameId = value.ToUInt64(); } }
+		// Static size: 8
+		private ulong steamIdClan;
+		public SteamID SteamIdClan { get { return new SteamID( steamIdClan ); } set { steamIdClan = value.ConvertToUInt64(); } }
+		// Static size: 4
+		public EChatPermission PermissionOfficer { get; set; }
+		// Static size: 4
+		public EChatPermission PermissionMember { get; set; }
+		// Static size: 4
+		public EChatPermission PermissionAll { get; set; }
+		// Static size: 4
+		public uint MembersMax { get; set; }
+		// Static size: 1
+		public byte ChatFlags { get; set; }
+		// Static size: 8
+		private ulong steamIdFriendChat;
+		public SteamID SteamIdFriendChat { get { return new SteamID( steamIdFriendChat ); } set { steamIdFriendChat = value.ConvertToUInt64(); } }
+		// Static size: 8
+		private ulong steamIdInvited;
+		public SteamID SteamIdInvited { get { return new SteamID( steamIdInvited ); } set { steamIdInvited = value.ConvertToUInt64(); } }
+
+		public MsgClientCreateChat()
+		{
+			ChatRoomType = 0;
+			gameId = 0;
+			steamIdClan = 0;
+			PermissionOfficer = 0;
+			PermissionMember = 0;
+			PermissionAll = 0;
+			MembersMax = 0;
+			ChatFlags = 0;
+			steamIdFriendChat = 0;
+			steamIdInvited = 0;
+		}
+
+		public void Serialize(Stream stream)
+		{
+			BinaryWriter bw = new BinaryWriter( stream );
+
+			bw.Write( (int)ChatRoomType );
+			bw.Write( gameId );
+			bw.Write( steamIdClan );
+			bw.Write( (int)PermissionOfficer );
+			bw.Write( (int)PermissionMember );
+			bw.Write( (int)PermissionAll );
+			bw.Write( MembersMax );
+			bw.Write( ChatFlags );
+			bw.Write( steamIdFriendChat );
+			bw.Write( steamIdInvited );
+
+		}
+
+		public void Deserialize( Stream stream )
+		{
+			BinaryReader br = new BinaryReader( stream );
+
+			ChatRoomType = (EChatRoomType)br.ReadInt32();
+			gameId = br.ReadUInt64();
+			steamIdClan = br.ReadUInt64();
+			PermissionOfficer = (EChatPermission)br.ReadInt32();
+			PermissionMember = (EChatPermission)br.ReadInt32();
+			PermissionAll = (EChatPermission)br.ReadInt32();
+			MembersMax = br.ReadUInt32();
+			ChatFlags = br.ReadByte();
+			steamIdFriendChat = br.ReadUInt64();
+			steamIdInvited = br.ReadUInt64();
+		}
+	}
+
+	public class MsgClientCreateChatResponse : ISteamSerializableMessage
+	{
+		public EMsg GetEMsg() { return EMsg.ClientCreateChatResponse; }
+
+		// Static size: 4
+		public EResult Result { get; set; }
+		// Static size: 8
+		private ulong steamIdChat;
+		public SteamID SteamIdChat { get { return new SteamID( steamIdChat ); } set { steamIdChat = value.ConvertToUInt64(); } }
+		// Static size: 4
+		public EChatRoomType ChatRoomType { get; set; }
+		// Static size: 8
+		private ulong steamIdFriendChat;
+		public SteamID SteamIdFriendChat { get { return new SteamID( steamIdFriendChat ); } set { steamIdFriendChat = value.ConvertToUInt64(); } }
+
+		public MsgClientCreateChatResponse()
+		{
+			Result = 0;
+			steamIdChat = 0;
+			ChatRoomType = 0;
+			steamIdFriendChat = 0;
+		}
+
+		public void Serialize(Stream stream)
+		{
+			BinaryWriter bw = new BinaryWriter( stream );
+
+			bw.Write( (int)Result );
+			bw.Write( steamIdChat );
+			bw.Write( (int)ChatRoomType );
+			bw.Write( steamIdFriendChat );
+
+		}
+
+		public void Deserialize( Stream stream )
+		{
+			BinaryReader br = new BinaryReader( stream );
+
+			Result = (EResult)br.ReadInt32();
+			steamIdChat = br.ReadUInt64();
+			ChatRoomType = (EChatRoomType)br.ReadInt32();
+			steamIdFriendChat = br.ReadUInt64();
 		}
 	}
 

@@ -126,13 +126,22 @@ namespace SteamKit2.Internal
       set { _messageid = value; }
     }
 
-    private uint _publisherid = default(uint);
-    [global::ProtoBuf.ProtoMember(19, IsRequired = false, Name=@"publisherid", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    private uint _publisher_group_id = default(uint);
+    [global::ProtoBuf.ProtoMember(19, IsRequired = false, Name=@"publisher_group_id", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
     [global::System.ComponentModel.DefaultValue(default(uint))]
-    public uint publisherid
+    public uint publisher_group_id
     {
-      get { return _publisherid; }
-      set { _publisherid = value; }
+      get { return _publisher_group_id; }
+      set { _publisher_group_id = value; }
+    }
+
+    private uint _sysid = default(uint);
+    [global::ProtoBuf.ProtoMember(20, IsRequired = false, Name=@"sysid", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    [global::System.ComponentModel.DefaultValue(default(uint))]
+    public uint sysid
+    {
+      get { return _sysid; }
+      set { _sysid = value; }
     }
     private global::ProtoBuf.IExtension extensionObject;
     global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
