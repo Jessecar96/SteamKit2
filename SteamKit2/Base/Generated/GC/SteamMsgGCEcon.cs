@@ -100,12 +100,6 @@ namespace SteamKit2.GC.Internal
       [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCGiftedItems", Value=1027)]
       k_EMsgGCGiftedItems = 1027,
             
-      [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCSpawnItem_DEPRECATED", Value=1028)]
-      k_EMsgGCSpawnItem_DEPRECATED = 1028,
-            
-      [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCRespawnPostLoadoutChange", Value=1029)]
-      k_EMsgGCRespawnPostLoadoutChange = 1029,
-            
       [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCRemoveItemName", Value=1030)]
       k_EMsgGCRemoveItemName = 1030,
             
@@ -159,9 +153,6 @@ namespace SteamKit2.GC.Internal
             
       [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCUpdateItemSchema", Value=1049)]
       k_EMsgGCUpdateItemSchema = 1049,
-            
-      [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCRequestInventoryRefresh", Value=1050)]
-      k_EMsgGCRequestInventoryRefresh = 1050,
             
       [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCRemoveCustomTexture", Value=1051)]
       k_EMsgGCRemoveCustomTexture = 1051,
@@ -368,7 +359,16 @@ namespace SteamKit2.GC.Internal
       k_EMsgGCBannedWordListResponse = 2513,
             
       [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCToGCBannedWordListBroadcast", Value=2514)]
-      k_EMsgGCToGCBannedWordListBroadcast = 2514
+      k_EMsgGCToGCBannedWordListBroadcast = 2514,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCToGCBannedWordListUpdated", Value=2515)]
+      k_EMsgGCToGCBannedWordListUpdated = 2515,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCToGCDirtySDOCache", Value=2516)]
+      k_EMsgGCToGCDirtySDOCache = 2516,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"k_EMsgGCToGCDirtyMultipleSDOCache", Value=2517)]
+      k_EMsgGCToGCDirtyMultipleSDOCache = 2517
     }
   
     [global::ProtoBuf.ProtoContract(Name=@"EGCMsgResponse")]

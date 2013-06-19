@@ -38,6 +38,11 @@ namespace SteamKit2
             /// </summary>
             /// <value>The state.</value>
             public EPersonaState State { get; private set; }
+            /// <summary>
+            /// Gets the state flags.
+            /// </summary>
+            /// <value>The state flags.</value>
+            public EPersonaStateFlag StateFlags { get; private set; }
 
             /// <summary>
             /// Gets the game app ID.
@@ -129,17 +134,13 @@ namespace SteamKit2
             public uint PublishedSessionID { get; private set; }
 
 
-#if STATIC_CALLBACKS
-            internal PersonaStateCallback( SteamClient client, CMsgClientPersonaState.Friend friend )
-                : base( client )
-#else
             internal PersonaStateCallback( CMsgClientPersonaState.Friend friend )
-#endif
             {
                 this.StatusFlags = ( EClientPersonaStateFlag )friend.persona_state_flags;
 
                 this.FriendID = friend.friendid;
                 this.State = ( EPersonaState )friend.persona_state;
+                this.StateFlags = ( EPersonaStateFlag )friend.persona_state_flags;
 
                 this.GameAppID = friend.game_played_app_id;
                 this.GameID = friend.gameid;
@@ -165,6 +166,141 @@ namespace SteamKit2
 
                 this.OnlineSessionInstances = friend.online_session_instances;
                 this.PublishedSessionID = friend.published_instance_id;
+            }
+        }
+
+        /// <summary>
+        /// This callback is posted when a clan's state has been changed.
+        /// </summary>
+        public sealed class ClanStateCallback : CallbackMsg
+        {
+            /// <summary>
+            /// Represents an event or announcement that was posted by a clan.
+            /// </summary>
+            public sealed class Event
+            {
+                /// <summary>
+                /// Gets the globally unique ID for this specific event.
+                /// </summary>
+                public GlobalID ID { get; private set; }
+
+                /// <summary>
+                /// Gets the event time.
+                /// </summary>
+                public DateTime EventTime { get; private set; }
+                /// <summary>
+                /// Gets the headline of the event.
+                /// </summary>
+                public string Headline { get; private set; }
+                /// <summary>
+                /// Gets the <see cref="GameID"/> associated with this event, if any.
+                /// </summary>
+                public GameID GameID { get; private set; }
+
+                /// <summary>
+                /// Gets a value indicating whether this event was just posted.
+                /// </summary>
+                /// <value>
+                ///   <c>true</c> if the event was just posted; otherwise, <c>false</c>.
+                /// </value>
+                public bool JustPosted { get; private set; }
+
+
+                internal Event( CMsgClientClanState.Event clanEvent )
+                {
+                    ID = clanEvent.gid;
+
+                    EventTime = Utils.DateTimeFromUnixTime( clanEvent.event_time );
+                    Headline = clanEvent.headline;
+                    GameID = clanEvent.game_id;
+
+                    JustPosted = clanEvent.just_posted;
+                }
+            }
+
+            /// <summary>
+            /// Gets the <see cref="SteamID"/> of the clan that posted this state update.
+            /// </summary>
+            public SteamID ClanID { get; private set; }
+
+            /// <summary>
+            /// Gets the status flags.
+            /// </summary>
+            public EClientPersonaStateFlag StatusFlags { get; private set; }
+            /// <summary>
+            /// Gets the account flags.
+            /// </summary>
+            public EAccountFlags AccountFlags { get; private set; }
+
+            /// <summary>
+            /// Gets the name of the clan.
+            /// </summary>
+            /// <value>
+            /// The name of the clan.
+            /// </value>
+            public string ClanName { get; private set; }
+            /// <summary>
+            /// Gets the SHA-1 avatar hash.
+            /// </summary>
+            public byte[] AvatarHash { get; private set; }
+
+            /// <summary>
+            /// Gets the total number of members in this clan.
+            /// </summary>
+            public uint MemberTotalCount { get; private set; }
+            /// <summary>
+            /// Gets the number of members in this clan that are currently online.
+            /// </summary>
+            public uint MemberOnlineCount { get; private set; }
+            /// <summary>
+            /// Gets the number of members in this clan that are currently chatting.
+            /// </summary>
+            public uint MemberChattingCount { get; private set; }
+            /// <summary>
+            /// Gets the number of members in this clan that are currently in-game.
+            /// </summary>
+            public uint MemberInGameCount { get; private set; }
+
+            /// <summary>
+            /// Gets any events associated with this clan state update.
+            /// </summary>
+            public ReadOnlyCollection<Event> Events { get; private set; }
+            /// <summary>
+            /// Gets any announcements associated with this clan state update.
+            /// </summary>
+            public ReadOnlyCollection<Event> Announcements { get; private set; }
+
+
+            internal ClanStateCallback( CMsgClientClanState msg )
+            {
+                ClanID = msg.steamid_clan;
+
+                StatusFlags = ( EClientPersonaStateFlag )msg.m_unStatusFlags;
+                AccountFlags = ( EAccountFlags )msg.clan_account_flags;
+
+                if ( msg.name_info != null )
+                {
+                    ClanName = msg.name_info.clan_name;
+                    AvatarHash = msg.name_info.sha_avatar;
+                }
+
+                if ( msg.user_counts != null )
+                {
+                    MemberTotalCount = msg.user_counts.members;
+                    MemberOnlineCount = msg.user_counts.online;
+                    MemberChattingCount = msg.user_counts.chatting;
+                    MemberInGameCount = msg.user_counts.in_game;
+                }
+
+                var events = msg.events
+                    .Select( e => new Event( e ) )
+                    .ToList();
+                Events = new ReadOnlyCollection<Event>( events );
+
+                var announcements = msg.announcements
+                    .Select( a => new Event( a ) )
+                    .ToList();
+                Announcements = new ReadOnlyCollection<Event>( announcements );
             }
         }
 
@@ -209,12 +345,7 @@ namespace SteamKit2
             public ReadOnlyCollection<Friend> FriendList { get; private set; }
 
 
-#if STATIC_CALLBACKS
-            internal FriendsListCallback( SteamClient client, CMsgClientFriendsList msg )
-                : base( client )
-#else
             internal FriendsListCallback( CMsgClientFriendsList msg )
-#endif
             {
                 this.Incremental = msg.bincremental;
 
@@ -255,12 +386,7 @@ namespace SteamKit2
             public string Message { get; private set; }
 
 
-#if STATIC_CALLBACKS
-            internal FriendMsgCallback( SteamClient client, CMsgClientFriendMsgIncoming msg )
-                : base( client )
-#else
             internal FriendMsgCallback( CMsgClientFriendMsgIncoming msg )
-#endif
             {
                 this.Sender = msg.steamid_from;
                 this.EntryType = ( EChatEntryType )msg.chat_entry_type;
@@ -298,12 +424,7 @@ namespace SteamKit2
             public string PersonaName { get; private set; }
 
 
-#if STATIC_CALLBACKS
-            internal FriendAddedCallback( SteamClient client, CMsgClientAddFriendResponse msg )
-                : base( client )
-#else
             internal FriendAddedCallback( CMsgClientAddFriendResponse msg )
-#endif
             {
                 this.Result = ( EResult )msg.eresult;
 
@@ -356,12 +477,7 @@ namespace SteamKit2
             public EChatRoomEnterResponse EnterResponse { get; private set; }
 
 
-#if STATIC_CALLBACKS
-            internal ChatEnterCallback( SteamClient client, MsgClientChatEnter msg )
-                : base( client )
-#else
             internal ChatEnterCallback( MsgClientChatEnter msg )
-#endif
             {
                 ChatID = msg.SteamIdChat;
                 FriendID = msg.SteamIdFriend;
@@ -402,12 +518,7 @@ namespace SteamKit2
             public string Message { get; private set; }
 
 
-#if STATIC_CALLBACKS
-            internal ChatMsgCallback( SteamClient client, MsgClientChatMsg msg, byte[] payload )
-                : base( client )
-#else
             internal ChatMsgCallback( MsgClientChatMsg msg, byte[] payload )
-#endif
             {
                 this.ChatterID = msg.SteamIdChatter;
                 this.ChatRoomID = msg.SteamIdChatRoom;
@@ -477,12 +588,7 @@ namespace SteamKit2
             public StateChangeDetails StateChangeInfo { get; private set; }
 
 
-#if STATIC_CALLBACKS
-            internal ChatMemberInfoCallback( SteamClient client, MsgClientChatMemberInfo msg, byte[] payload )
-                : base( client )
-#else
             internal ChatMemberInfoCallback( MsgClientChatMemberInfo msg, byte[] payload )
-#endif
             {
                 ChatRoomID = msg.SteamIdChat;
                 Type = msg.Type;
@@ -522,12 +628,7 @@ namespace SteamKit2
             public EChatActionResult Result { get; private set; }
 
 
-#if STATIC_CALLBACKS
-            internal ChatActionResultCallback( SteamClient client, MsgClientChatActionResult result )
-                : base( client )
-#else
             internal ChatActionResultCallback( MsgClientChatActionResult result )
-#endif
             {
                 ChatRoomID = result.SteamIdChat;
                 ChatterID = result.SteamIdUserActedOn;
@@ -576,12 +677,7 @@ namespace SteamKit2
             public GameID GameID { get; private set; }
 
 
-#if STATIC_CALLBACKS
-            internal ChatInviteCallback( SteamClient client, CMsgClientChatInvite invite )
-                : base( client )
-#else
             internal ChatInviteCallback( CMsgClientChatInvite invite )
-#endif
             {
                 this.InvitedID = invite.steam_id_invited;
                 this.ChatRoomID = invite.steam_id_chat;
@@ -608,14 +704,85 @@ namespace SteamKit2
             public EResult Result { get; private set; }
 
 
-#if STATIC_CALLBACKS
-            internal IgnoreFriendCallback( SteamClient client, MsgClientSetIgnoreFriendResponse response )
-                : base( client )
-#else
             internal IgnoreFriendCallback( MsgClientSetIgnoreFriendResponse response )
-#endif
             {
                 this.Result = response.Result;
+            }
+        }
+
+        /// <summary>
+        /// This callback is fired in response to requesting profile info for a user.
+        /// </summary>
+        public sealed class ProfileInfoCallback : CallbackMsg
+        {
+            /// <summary>
+            /// Gets the result of requesting profile info.
+            /// </summary>
+            public EResult Result { get; private set; }
+
+            /// <summary>
+            /// Gets the <see cref="SteamID"/> this info belongs to.
+            /// </summary>
+            public SteamID SteamID { get; private set; }
+
+            /// <summary>
+            /// Gets the time this account was created.
+            /// </summary>
+            public DateTime TimeCreated { get; private set; }
+
+            /// <summary>
+            /// Gets the real name.
+            /// </summary>
+            public string RealName { get; private set; }
+
+            /// <summary>
+            /// Gets the name of the city.
+            /// </summary>
+            public string CityName { get; private set; }
+            /// <summary>
+            /// Gets the name of the state.
+            /// </summary>
+            public string StateName { get; private set; }
+            /// <summary>
+            /// Gets the name of the country.
+            /// </summary>
+            public string CountryName { get; private set; }
+
+            /// <summary>
+            /// Gets the headline.
+            /// </summary>
+            public string Headline { get; private set; }
+
+            /// <summary>
+            /// Gets the summary.
+            /// </summary>
+            public string Summary { get; private set; }
+
+            /// <summary>
+            /// Gets the recent playtime.
+            /// </summary>
+            public TimeSpan RecentPlaytime { get; private set; }
+
+
+            internal ProfileInfoCallback( CMsgClientFriendProfileInfoResponse response )
+            {
+                Result = ( EResult )response.eresult;
+
+                SteamID = response.steamid_friend;
+
+                TimeCreated = Utils.DateTimeFromUnixTime( response.time_created );
+
+                RealName = response.real_name;
+
+                CityName = response.city_name;
+                StateName = response.state_name;
+                CountryName = response.country_name;
+
+                Headline = response.headline;
+
+                Summary = response.summary;
+
+                RecentPlaytime = TimeSpan.FromMinutes( ( uint )response.recent_playtime );
             }
         }
     }

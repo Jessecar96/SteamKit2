@@ -30,12 +30,8 @@ namespace SteamKit2
             /// </summary>
             public abstract Type CallbackType { get; }
 
-#if STATIC_CALLBACKS
-            internal BaseJobCallback( SteamClient client, ulong jobId )
-                : base( client )
-#else
-            internal BaseJobCallback(ulong jobId)
-#endif
+
+            internal BaseJobCallback( ulong jobId )
             {
                 this.JobID = jobId;
             }
@@ -52,7 +48,7 @@ namespace SteamKit2
             /// <summary>
             /// Gets the type of the callback.
             /// </summary>
-            public override Type CallbackType { get { return typeof(T); } }
+            public override Type CallbackType { get { return typeof( T ); } }
 
             /// <summary>
             /// Gets the inner callback message for this job.
@@ -60,26 +56,15 @@ namespace SteamKit2
             public T Callback { get; private set; }
 
 
-#if STATIC_CALLBACKS
-            /// <summary>
-            /// Initializes a new instance of the <see cref="JobCallback&lt;T&gt;"/> class.
-            /// </summary>
-            /// <param name="client">The <see cref="SteamClient"/> instance that is posting this callback.</param>
-            /// <param name="jobId">The for this callback.</param>
-            /// <param name="callback">The inner callback object.</param>
-            public JobCallback( SteamClient client, ulong jobId, T callback )
-                : base( client, jobId )
-#else
             /// <summary>
             /// Initializes a new instance of the <see cref="JobCallback&lt;T&gt;"/> class.
             /// </summary>
             /// <param name="jobId">The for this callback.</param>
             /// <param name="callback">The inner callback object.</param>
-            public JobCallback(JobID jobId, T callback)
-                : base(jobId)
-#endif
+            public JobCallback( JobID jobId, T callback )
+                : base( jobId )
             {
-                DebugLog.Assert(jobId != ulong.MaxValue, "JobCallback", "JobCallback used for non job based callback!");
+                DebugLog.Assert( jobId != ulong.MaxValue, "JobCallback", "JobCallback used for non job based callback!" );
 
                 Callback = callback;
             }
@@ -97,22 +82,13 @@ namespace SteamKit2
             /// <value>The result.</value>
             public EResult Result { get; private set; }
 
-#if STATIC_CALLBACKS
-            internal ConnectedCallback( SteamClient client, MsgChannelEncryptResult result )
-                : this( client, result.Result )
-#else
-            internal ConnectedCallback(MsgChannelEncryptResult result)
-                : this(result.Result)
-#endif
+
+            internal ConnectedCallback( MsgChannelEncryptResult result )
+                : this( result.Result )
             {
             }
 
-#if STATIC_CALLBACKS
-            internal ConnectedCallback( SteamClient client, EResult result )
-                : base( client )
-#else
-            internal ConnectedCallback(EResult result)
-#endif
+            internal ConnectedCallback( EResult result )
             {
                 this.Result = result;
             }
@@ -124,12 +100,6 @@ namespace SteamKit2
         /// </summary>
         public sealed class DisconnectedCallback : CallbackMsg
         {
-#if STATIC_CALLBACKS
-            internal DisconnectedCallback( SteamClient client )
-                : base( client )
-            {
-            }
-#endif
         }
 
 
@@ -144,17 +114,12 @@ namespace SteamKit2
             public ReadOnlyCollection<IPEndPoint> Servers { get; private set; }
 
 
-#if STATIC_CALLBACKS
-            internal CMListCallback( SteamClient client, CMsgClientCMList cmMsg )
-                : base( client )
-#else
-            internal CMListCallback(CMsgClientCMList cmMsg)
-#endif
+            internal CMListCallback( CMsgClientCMList cmMsg )
             {
                 var cmList = cmMsg.cm_addresses
-                    .Zip(cmMsg.cm_ports, (addr, port) => new IPEndPoint(NetHelpers.GetIPAddress(addr), (int)port));
+                    .Zip( cmMsg.cm_ports, ( addr, port ) => new IPEndPoint( NetHelpers.GetIPAddress( addr ), ( int )port ) );
 
-                Servers = new ReadOnlyCollection<IPEndPoint>(cmList.ToList());
+                Servers = new ReadOnlyCollection<IPEndPoint>( cmList.ToList() );
             }
         }
     }

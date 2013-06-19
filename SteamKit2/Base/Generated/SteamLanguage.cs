@@ -1136,6 +1136,8 @@ namespace SteamKit2
 		UFSDownloadFinishRequest = 5248,
 		UFSDownloadFinishResponse = 5249,
 		UFSFlushURLCache = 5250,
+		UFSUploadCommit = 5251,
+		UFSUploadCommitResponse = 5252,
 		BaseClient2 = 5400,
 		ClientRequestForgottenPasswordEmail = 5401,
 		ClientRequestForgottenPasswordEmailResponse = 5402,
@@ -1199,6 +1201,8 @@ namespace SteamKit2
 		ClientStoreUserStats2 = 5466,
 		ClientStatsUpdated = 5467,
 		ClientActivateOEMLicense = 5468,
+		ClientRegisterOEMMachine = 5469,
+		ClientRegisterOEMMachineResponse = 5470,
 		ClientRequestedClientStats = 5480,
 		ClientStat2Int32 = 5481,
 		ClientStat2 = 5482,
@@ -1313,6 +1317,8 @@ namespace SteamKit2
 		ClientServiceMethodResponse = 5595,
 		ClientFriendUserStatusPublished = 5596,
 		ClientCurrentUIMode = 5597,
+		ClientVanityURLChangedNotification = 5598,
+		ClientUserNotifications = 5599,
 		BaseDFS = 5600,
 		DFSGetFile = 5601,
 		DFSInstallLocalFile = 5602,
@@ -1387,6 +1393,11 @@ namespace SteamKit2
 		AMGMSGameServerUpdate = 6405,
 		AMGMSGameServerRemove = 6406,
 		GameServerOutOfDate = 6407,
+		ClientAuthorizeLocalDeviceRequest = 6501,
+		ClientAuthorizeLocalDevice = 6502,
+		ClientDeauthorizeLocalDeviceRequest = 6503,
+		ClientDeauthorizeLocalDevice = 6504,
+		ClientUseLocalDeviceAuthorizations = 6505,
 		MMSBase = 6600,
 		ClientMMSCreateLobby = 6601,
 		ClientMMSCreateLobbyResponse = 6602,
@@ -1679,6 +1690,8 @@ namespace SteamKit2
 		TestWorkerProcessLoadUnloadModuleResponse = 9201,
 		TestWorkerProcessServiceModuleCallRequest = 9202,
 		TestWorkerProcessServiceModuleCallResponse = 9203,
+		ClientGetEmoticonList = 9330,
+		ClientEmoticonList = 9331,
 	}
 	public enum EResult
 	{
@@ -1898,6 +1911,15 @@ namespace SteamKit2
 		Ignored = 512,
 		IgnoredFriend = 1024,
 		FlagAll = 65535,
+	}
+	[Flags]
+	public enum EPersonaStateFlag
+	{
+		HasRichPresence = 1,
+		InJoinableGame = 2,
+		OnlineUsingWeb = 256,
+		OnlineUsingMobile = 512,
+		OnlineUsingBigPicture = 1024,
 	}
 	[Flags]
 	public enum EClientPersonaStateFlag
@@ -2512,6 +2534,15 @@ namespace SteamKit2
 		None = 0,
 		KeepBest = 1,
 		ForceUpdate = 2,
+	}
+	[Flags]
+	public enum EUCMFilePrivacyState
+	{
+		Invalid = -1,
+		Private = 2,
+		FriendsOnly = 4,
+		Public = 8,
+		All = 14,
 	}
 	public enum EUdpPacketType : byte
 	{

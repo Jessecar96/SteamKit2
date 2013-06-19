@@ -92,6 +92,10 @@
     <Compile Include="Base\Generated\GC\TF2\MsgGC.cs" />
     <Compile Include="Base\Generated\IClientObjects.cs" />
     <Compile Include="Base\Generated\SteamLanguageInternal.cs" />
+    <Compile Include="Base\Generated\Unified\SteamMsgCloud.cs" />
+    <Compile Include="Base\Generated\Unified\SteamMsgCredentials.cs" />
+    <Compile Include="Base\Generated\Unified\SteamMsgPlayer.cs" />
+    <Compile Include="Base\Generated\Unified\SteamMsgUnifiedBase.cs" />
     <Compile Include="Base\MsgBase.cs" />
     <Compile Include="Base\PacketBase.cs" />
     <Compile Include="Blob\BlobFieldAttribute.cs" />
@@ -119,19 +123,25 @@
     <Compile Include="Steam3\Handlers\SteamGameCoordinator\Callbacks.cs" />
     <Compile Include="Steam3\Handlers\SteamMasterServer\Callbacks.cs" />
     <Compile Include="Steam3\Handlers\SteamMasterServer\SteamMasterServer.cs" />
+    <Compile Include="Steam3\Handlers\SteamScreenshots\Callbacks.cs" />
+    <Compile Include="Steam3\Handlers\SteamScreenshots\SteamScreenshots.cs" />
     <Compile Include="Steam3\Handlers\SteamTrading\Callbacks.cs" />
     <Compile Include="Steam3\Handlers\SteamTrading\SteamTrading.cs" />
+    <Compile Include="Steam3\Handlers\SteamUnifiedMessages\Callbacks.cs" />
+    <Compile Include="Steam3\Handlers\SteamUnifiedMessages\SteamUnifiedMessages.cs" />
     <Compile Include="Steam3\Handlers\SteamWorkshop\Callbacks.cs" />
     <Compile Include="Steam3\Handlers\SteamWorkshop\SteamWorkshop.cs" />
     <Compile Include="Steam3\Handlers\SteamUserStats\SteamUserStats.cs" />
     <Compile Include="Steam3\SteamClient\CallbackMgr\CallbackMgr.cs" />
+    <Compile Include="Steam3\UFSClient\Callbacks.cs" />
+    <Compile Include="Steam3\UFSClient\UFSClient.cs" />
     <Compile Include="Steam3\WebAPI\WebAPI.cs" />
     <Compile Include="Types\ChecksumData.cs" />
-    <Compile Include="Types\JobID.cs" />
+    <Compile Include="Types\GlobalID.cs" />
     <Compile Include="Types\DepotManifest.cs" />
     <Compile Include="Types\MicroTime.cs" />
     <Compile Include="Types\Steam2Ticket.cs" />
-    <Compile Include="Types\UGC.cs" />
+    <Compile Include="Types\PubFile.cs" />
     <Compile Include="Util\AsnKeyParser.cs" />
     <Compile Include="Util\BinaryEx.cs" />
     <Compile Include="Util\Crc32.cs" />
@@ -154,7 +164,9 @@
     <Compile Include="Types\Manifest.cs" />
     <Compile Include="Util\DebugLog.cs" />
     <Compile Include="Steam2\ConfigServerClient.cs" />
-    <Compile Include="Util\Utils.cs" />
+    <Compile Include="Util\Utils.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Steam3\Handlers\SteamFriends\SteamFriends.cs" />
     <Compile Include="Util\ScheduledFunction.cs" />
     <Compile Include="Steam3\Handlers\SteamUser\SteamUser.cs" />
@@ -217,7 +229,9 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
